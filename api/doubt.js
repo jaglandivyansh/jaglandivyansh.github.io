@@ -40,7 +40,7 @@ export default async function handler(req, res) {
           { role: "user", content: question.trim() }
         ],
         temperature: 0.5,
-        max_tokens: 400 
+        max_tokens: 1500 
       }),
       signal: controller.signal // Attaches the timeout
     });
