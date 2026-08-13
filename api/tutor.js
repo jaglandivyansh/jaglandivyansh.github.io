@@ -7,7 +7,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "sarvam-30b", 
+        model: "sarvam-105b", 
         messages: req.body.messages,
         temperature: 0.2,
         max_tokens: 300 // <-- Isko 150 se 300 kar diya taaki jawab aadha na kate
