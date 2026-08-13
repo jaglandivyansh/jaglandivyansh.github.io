@@ -948,6 +948,11 @@ function pgSwipeFC() {
 // PAGE-TOPICLIST.JS — Structured Syllabus Chapters
 // ═══════════════════════════════════════════════════════════════════
 
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE-TOPICLIST.JS — Structured Syllabus Chapters (UPDATED)
+// ═══════════════════════════════════════════════════════════════════
+
 function pgTopicList() {
     var s = sub; 
     var d = typeof SD !== 'undefined' ? SD[s] : { color: "#3b82f6", topics: [] };
@@ -972,8 +977,26 @@ function pgTopicList() {
     // Topics List Container
     var listWrap = el("div", { css: { display: "flex", flexDirection: "column", gap: "12px" } });
     
-    if (d && d.topics && d.topics.length > 0) {
-        d.topics.forEach(function(topicName, idx) {
+    // 🎯 NEW LOGIC: Merge Hardcoded Topics with Dynamic Sheet Topics
+    var combinedTopics = [];
+    
+    // Step 1: Add hardcoded topics from page-home.js
+    if (d && d.topics) {
+        d.topics.forEach(function(t) {
+            if (t && !combinedTopics.includes(t)) combinedTopics.push(t);
+        });
+    }
+    
+    // Step 2: Scan Google Sheets data for new unique topics
+    qs.forEach(function(q) {
+        var qTopic = q.topic ? q.topic.trim() : "";
+        if (qTopic && !combinedTopics.includes(qTopic)) {
+            combinedTopics.push(qTopic);
+        }
+    });
+
+    if (combinedTopics.length > 0) {
+        combinedTopics.forEach(function(topicName, idx) {
             
             // Count exactly how many questions exist for this specific topic
             var tq = qs.filter(function(q) {

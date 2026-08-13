@@ -252,6 +252,137 @@ function makeQuoteCard() {
   return wrap;
 }
 
+window.SD = {
+    History: { 
+        color: "#7c3aed", bg: "#f5f3ff", 
+        desc: "Ancient civilizations, medieval kingdoms, freedom struggle, and world history.", 
+        topics: [
+            "Ancient Indian Sources & Prehistory", "Indus Valley Civilization", "Vedic Period", 
+            "Buddhism, Jainism & Other Religions", "Mauryan & Gupta Empires", "South Indian Dynasties", 
+            "Delhi Sultanate", "Mughal Empire & Marathas", "Advent of Europeans", 
+            "Revolt of 1857", "Indian National Movement", "Socio-Religious Reforms", 
+            "World History Basics"
+        ], 
+        sym: ["⚔️", "🏛️", "📜", "👑", "⚛️", "🛡️"] 
+    },
+    Geography: { 
+        color: "#059669", bg: "#ecfdf5", 
+        desc: "Solar system, world geography, and the complete physical geography of India.", 
+        topics: [
+            "Universe & Solar System", "Earth's Structure & Lithosphere", "World Geography & Continents", 
+            "Physical Geography of India", "Indian Rivers & Lakes", "Climate & Natural Vegetation", 
+            "Indian Agriculture & Soils", "Minerals & Industries", "Transport & Infrastructure", 
+            "Demographics (Census 2011)"
+        ], 
+        sym: ["🌍", "🏔️", "🌊", "🌿", "🌋", "🌎"] 
+    },
+    "Environment & Ecology": { 
+        color: "#16a34a", bg: "#f0fdf4", 
+        desc: "Ecosystems, biodiversity, climate change, and environmental conservation.", 
+        topics: [
+            "Ecology & Ecosystems", "Biodiversity & Conservation", "Environmental Pollution", 
+            "Climate Change & Greenhouse Effect", "Ozone Layer Depletion"
+        ], 
+        sym: ["🌱", "🐅", "♻️", "🌳", "🌍"] 
+    },
+    Economy: { 
+        color: "#0284c7", bg: "#f0f9ff", 
+        desc: "National income, banking, poverty, and economic planning in India.", 
+        topics: [
+            "Economic Planning & NITI Aayog", "National Income", "Poverty & Unemployment", 
+            "Indian Banking & Finance", "Agriculture & Industries", "Foreign Trade & BOP", 
+            "Important Economic Terminology"
+        ], 
+        sym: ["📊", "💰", "🏦", "📈", "💴"] 
+    },
+    Polity: { 
+        color: "#dc2626", bg: "#fef2f2", 
+        desc: "The Indian Constitution, Parliament, Judiciary, and governance structures.", 
+        topics: [
+            "Constitutional History & Assembly", "Preamble & Territory", "Fundamental Rights & Duties", 
+            "Directive Principles (DPSP)", "Union Executive & Parliament", "State Executive & Legislature", 
+            "Judiciary (Supreme & High Courts)", "Panchayati Raj & Local Govt", 
+            "Constitutional Bodies (EC, UPSC, CAG)", "Important Amendments & Articles"
+        ], 
+        sym: ["⚖️", "🏛️", "📜", "🔐", "🇮🇳"] 
+    },
+    Physics: { 
+        color: "#0ea5e9", bg: "#f0f9ff", 
+        desc: "Mechanics, thermodynamics, optics, electromagnetism, and modern physics.", 
+        topics: [
+            "Units, Measurements & Motion", "Work, Energy & Gravity", "Properties of Matter (Fluids, Viscosity)", 
+            "Heat & Thermodynamics", "Waves & Sound", "Light & Optics", 
+            "Electricity & Magnetism", "Modern & Nuclear Physics", "Scientific Instruments & Discoveries"
+        ], 
+        sym: ["⚡", "🧲", "💡", "🔭", "🍎"] 
+    },
+    Chemistry: { 
+        color: "#f59e0b", bg: "#fffbeb", 
+        desc: "Atomic structure, periodic table, bonding, and organic/inorganic compounds.", 
+        topics: [
+            "Matter & Atomic Structure", "Behavior of Gases", "Periodic Table", 
+            "Chemical Bonding & Reactions", "Acids, Bases & Salts", "Carbon & its Compounds", 
+            "Metals, Non-metals & Alloys", "Man-made Materials & Polymers"
+        ], 
+        sym: ["🧪", "⚗️", "⚛️", "💊", "🔥"] 
+    },
+    Biology: { 
+        color: "#84cc16", bg: "#f7fee7", 
+        desc: "Cell biology, human anatomy, diseases, genetics, and plant physiology.", 
+        topics: [
+            "Classification of Organisms", "Cell Biology", "Human Anatomy & Physiology", 
+            "Nutrition & Vitamins", "Human Diseases", "Genetics & Evolution", 
+            "Botany (Plant Kingdom)"
+        ], 
+        sym: ["🧬", "🔬", "🌿", "🩸", "🦠"] 
+    },
+    "Science & Technology": { 
+        color: "#6366f1", bg: "#e0e7ff", 
+        desc: "Space missions, defense tech, and scientific advancements.", 
+        topics: [
+            "Space Technology & ISRO", "Defense Technology & DRDO", "Nuclear Technology"
+        ], 
+        sym: ["🚀", "🛰️", "📡", "🛡️", "🧬"] 
+    },
+    Computer: { 
+        color: "#4f46e5", bg: "#eef2ff", 
+        desc: "Basics of computers, software, hardware, internet, and networking.", 
+        topics: [
+            "Computer Architecture & History", "Hardware & Software", "Internet & Networking", 
+            "Cyber Security Basics", "Shortcuts & Abbreviations"
+        ], 
+        sym: ["💻", "🖥️", "🌐", "💾", "⌨️"] 
+    },
+    "Art & Culture": { 
+        color: "#db2777", bg: "#fdf2f8", 
+        desc: "Classical dances, music, architecture, festivals, and heritage.", 
+        topics: [
+            "Indian Classical & Folk Dances", "Indian Music & Instruments", "Architecture & Sculptures", 
+            "Festivals & Fairs", "Indian Paintings", "UNESCO World Heritage Sites"
+        ], 
+        sym: ["🎭", "🎨", "🛕", "🪘", "💃", "🏛️"] 
+    },
+    Sports: { 
+        color: "#f97316", bg: "#fff7ed", 
+        desc: "Olympics, tournaments, athletes, and sports terminology.", 
+        topics: [
+            "Olympic & Commonwealth Games", "Asian Games", "Sports Terminology", 
+            "Trophies & Cups", "Famous Athletes & Grounds", "Sports Organizations"
+        ], 
+        sym: ["🏅", "⚽", "🏏", "🎾", "🏆"] 
+    },
+    Miscellaneous: { 
+        color: "#64748b", bg: "#f8fafc", 
+        desc: "First in India/World, organizations, awards, and important dates.", 
+        topics: [
+            "First in India & World", "Superlatives (Longest, Largest, Highest)", "International Organizations (UN, WHO)", 
+            "Important Dates & Days", "Major Awards & Honors", "Famous Books & Authors", 
+            "Defense & Intelligence Agencies"
+        ], 
+        sym: ["🌍", "🏢", "📅", "🥇", "📚"] 
+    }
+  };
+
 // ─── AI DOUBT SOLVER ─────────────────────────────────────────────
 var ADS_LOADING = false;
 
@@ -552,136 +683,7 @@ function pgHome(){
 
   w.appendChild(makeAIDoubtSolver());
 
-  var SD = {
-    History: { 
-        color: "#7c3aed", bg: "#f5f3ff", 
-        desc: "Ancient civilizations, medieval kingdoms, freedom struggle, and world history.", 
-        topics: [
-            "Ancient Indian Sources & Prehistory", "Indus Valley Civilization", "Vedic Period", 
-            "Buddhism, Jainism & Other Religions", "Mauryan & Gupta Empires", "South Indian Dynasties", 
-            "Delhi Sultanate", "Mughal Empire & Marathas", "Advent of Europeans", 
-            "Revolt of 1857", "Indian National Movement", "Socio-Religious Reforms", 
-            "World History Basics"
-        ], 
-        sym: ["⚔️", "🏛️", "📜", "👑", "⚛️", "🛡️"] 
-    },
-    Geography: { 
-        color: "#059669", bg: "#ecfdf5", 
-        desc: "Solar system, world geography, and the complete physical geography of India.", 
-        topics: [
-            "Universe & Solar System", "Earth's Structure & Lithosphere", "World Geography & Continents", 
-            "Physical Geography of India", "Indian Rivers & Lakes", "Climate & Natural Vegetation", 
-            "Indian Agriculture & Soils", "Minerals & Industries", "Transport & Infrastructure", 
-            "Demographics (Census 2011)"
-        ], 
-        sym: ["🌍", "🏔️", "🌊", "🌿", "🌋", "🌎"] 
-    },
-    "Environment & Ecology": { 
-        color: "#16a34a", bg: "#f0fdf4", 
-        desc: "Ecosystems, biodiversity, climate change, and environmental conservation.", 
-        topics: [
-            "Ecology & Ecosystems", "Biodiversity & Conservation", "Environmental Pollution", 
-            "Climate Change & Greenhouse Effect", "Ozone Layer Depletion"
-        ], 
-        sym: ["🌱", "🐅", "♻️", "🌳", "🌍"] 
-    },
-    Economy: { 
-        color: "#0284c7", bg: "#f0f9ff", 
-        desc: "National income, banking, poverty, and economic planning in India.", 
-        topics: [
-            "Economic Planning & NITI Aayog", "National Income", "Poverty & Unemployment", 
-            "Indian Banking & Finance", "Agriculture & Industries", "Foreign Trade & BOP", 
-            "Important Economic Terminology"
-        ], 
-        sym: ["📊", "💰", "🏦", "📈", "💴"] 
-    },
-    Polity: { 
-        color: "#dc2626", bg: "#fef2f2", 
-        desc: "The Indian Constitution, Parliament, Judiciary, and governance structures.", 
-        topics: [
-            "Constitutional History & Assembly", "Preamble & Territory", "Fundamental Rights & Duties", 
-            "Directive Principles (DPSP)", "Union Executive & Parliament", "State Executive & Legislature", 
-            "Judiciary (Supreme & High Courts)", "Panchayati Raj & Local Govt", 
-            "Constitutional Bodies (EC, UPSC, CAG)", "Important Amendments & Articles"
-        ], 
-        sym: ["⚖️", "🏛️", "📜", "🔐", "🇮🇳"] 
-    },
-    Physics: { 
-        color: "#0ea5e9", bg: "#f0f9ff", 
-        desc: "Mechanics, thermodynamics, optics, electromagnetism, and modern physics.", 
-        topics: [
-            "Units, Measurements & Motion", "Work, Energy & Gravity", "Properties of Matter (Fluids, Viscosity)", 
-            "Heat & Thermodynamics", "Waves & Sound", "Light & Optics", 
-            "Electricity & Magnetism", "Modern & Nuclear Physics", "Scientific Instruments & Discoveries"
-        ], 
-        sym: ["⚡", "🧲", "💡", "🔭", "🍎"] 
-    },
-    Chemistry: { 
-        color: "#f59e0b", bg: "#fffbeb", 
-        desc: "Atomic structure, periodic table, bonding, and organic/inorganic compounds.", 
-        topics: [
-            "Matter & Atomic Structure", "Behavior of Gases", "Periodic Table", 
-            "Chemical Bonding & Reactions", "Acids, Bases & Salts", "Carbon & its Compounds", 
-            "Metals, Non-metals & Alloys", "Man-made Materials & Polymers"
-        ], 
-        sym: ["🧪", "⚗️", "⚛️", "💊", "🔥"] 
-    },
-    Biology: { 
-        color: "#84cc16", bg: "#f7fee7", 
-        desc: "Cell biology, human anatomy, diseases, genetics, and plant physiology.", 
-        topics: [
-            "Classification of Organisms", "Cell Biology", "Human Anatomy & Physiology", 
-            "Nutrition & Vitamins", "Human Diseases", "Genetics & Evolution", 
-            "Botany (Plant Kingdom)"
-        ], 
-        sym: ["🧬", "🔬", "🌿", "🩸", "🦠"] 
-    },
-    "Science & Technology": { 
-        color: "#6366f1", bg: "#e0e7ff", 
-        desc: "Space missions, defense tech, and scientific advancements.", 
-        topics: [
-            "Space Technology & ISRO", "Defense Technology & DRDO", "Nuclear Technology"
-        ], 
-        sym: ["🚀", "🛰️", "📡", "🛡️", "🧬"] 
-    },
-    Computer: { 
-        color: "#4f46e5", bg: "#eef2ff", 
-        desc: "Basics of computers, software, hardware, internet, and networking.", 
-        topics: [
-            "Computer Architecture & History", "Hardware & Software", "Internet & Networking", 
-            "Cyber Security Basics", "Shortcuts & Abbreviations"
-        ], 
-        sym: ["💻", "🖥️", "🌐", "💾", "⌨️"] 
-    },
-    "Art & Culture": { 
-        color: "#db2777", bg: "#fdf2f8", 
-        desc: "Classical dances, music, architecture, festivals, and heritage.", 
-        topics: [
-            "Indian Classical & Folk Dances", "Indian Music & Instruments", "Architecture & Sculptures", 
-            "Festivals & Fairs", "Indian Paintings", "UNESCO World Heritage Sites"
-        ], 
-        sym: ["🎭", "🎨", "🛕", "🪘", "💃", "🏛️"] 
-    },
-    Sports: { 
-        color: "#f97316", bg: "#fff7ed", 
-        desc: "Olympics, tournaments, athletes, and sports terminology.", 
-        topics: [
-            "Olympic & Commonwealth Games", "Asian Games", "Sports Terminology", 
-            "Trophies & Cups", "Famous Athletes & Grounds", "Sports Organizations"
-        ], 
-        sym: ["🏅", "⚽", "🏏", "🎾", "🏆"] 
-    },
-    Miscellaneous: { 
-        color: "#64748b", bg: "#f8fafc", 
-        desc: "First in India/World, organizations, awards, and important dates.", 
-        topics: [
-            "First in India & World", "Superlatives (Longest, Largest, Highest)", "International Organizations (UN, WHO)", 
-            "Important Dates & Days", "Major Awards & Honors", "Famous Books & Authors", 
-            "Defense & Intelligence Agencies"
-        ], 
-        sym: ["🌍", "🏢", "📅", "🥇", "📚"] 
-    }
-  };
+  
   
   var subjSec = el("div", { id: "ss", css: { marginBottom: "60px", position: "relative", zIndex: "2" } });
   
@@ -713,7 +715,7 @@ function pgHome(){
 
   if (typeof SUBJ !== 'undefined') {
     SUBJ.forEach(function(s) {
-      var d = SD[s], cnt = (typeof QD !== 'undefined' && QD[s] ? QD[s].length : 0);
+      var d = window.SD[s], cnt = (typeof QD !== 'undefined' && QD[s] ? QD[s].length : 0);
       
       var row = el("div", {
         css: {

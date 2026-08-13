@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// PAGE-ALLTOPICS.JS — Complete Syllabus Directory
+// PAGE-ALLTOPICS.JS — Complete Syllabus Directory (UPDATED)
 // ═══════════════════════════════════════════════════════════════════
 
 function pgAllTopics() {
@@ -66,8 +66,24 @@ function pgAllTopics() {
         // Topics Grid/List for this Subject
         var topicListWrap = el("div", { css: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "10px", marginTop: "12px" } });
 
-        if (data.topics && data.topics.length > 0) {
-            data.topics.forEach(function(topicName) {
+        // 🎯 NEW LOGIC: Merge Hardcoded Topics with Dynamic Sheet Topics
+        var combinedTopics = [];
+        
+        if (data.topics) {
+            data.topics.forEach(function(t) {
+                if (t && !combinedTopics.includes(t)) combinedTopics.push(t);
+            });
+        }
+        
+        subjectQs.forEach(function(q) {
+            var qTopic = q.topic ? q.topic.trim() : "";
+            if (qTopic && !combinedTopics.includes(qTopic)) {
+                combinedTopics.push(qTopic);
+            }
+        });
+
+        if (combinedTopics.length > 0) {
+            combinedTopics.forEach(function(topicName) {
                 // Count matching questions in this topic
                 var count = subjectQs.filter(function(q) {
                     return q.topic && q.topic.toLowerCase().trim() === topicName.toLowerCase().trim();
