@@ -30,7 +30,7 @@ export default async function handler(req, res) {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: question.trim() }
         ],
-        temperature: 0.3, // Lowered slightly from 0.5 to keep factual answers more grounded
+        temperature: 0.5, // Lowered slightly from 0.5 to keep factual answers more grounded
         max_tokens: 400 
       })
     });
