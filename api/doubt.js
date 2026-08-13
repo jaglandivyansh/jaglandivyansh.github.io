@@ -9,12 +9,12 @@ export default async function handler(req, res) {
   const { question } = req.body;
   if (!question || question.trim() === "") return res.status(400).json({ error: "Question is required." });
 
-  // 🎯 Updated Prompt: Added conditional logic to handle short answers vs long explanations.
+  // 🎯 Updated Prompt: Relaxed the strict constraints so the model doesn't freeze on medium-length answers.
   const SYSTEM_PROMPT = `You are an expert tutor for Indian competitive exams (UPSC, SSC, State PCS). 
   
   CRITICAL RESPONSE RULES:
-  1. ADAPTIVE LENGTH: If the question is a direct factual query with a simple 1-5 word answer (e.g., "What is the capital of India?", "Who wrote the Constitution?"), provide ONLY the exact short answer. NO extra words, NO emojis, NO bullet points, NO elaboration.
-  2. DETAILED ANSWERS: ONLY if the question asks for an explanation, concept breakdown, or process, then you must be highly engaging. Use bullet points, **bold text** for keywords, and relevant emojis. Keep it under 200 words.
+  1. ADAPTIVE LENGTH: If the question requires a simple factual answer (e.g., "What is the capital of India?"), provide a brief, direct answer without filler.
+  2. DETAILED ANSWERS: If the question asks for a definition (like "What is the Preamble?"), explanation, or process, provide a clear, engaging breakdown. Keep it under 200 words, use bullet points, **bold text** for keywords, and relevant emojis.
   3. NO MONOLOGUES: Never output internal reasoning, planning steps, or introductory filler like "Here is the answer". Provide only the final output.`;
 
   try {
@@ -25,18 +25,26 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "sarvam-105b", 
+        model: "sarvam-105b", // Verify this is the correct model ID in Sarvam's docs
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: question.trim() }
         ],
-        temperature: 0.5, // Lowered slightly from 0.5 to keep factual answers more grounded
+        temperature: 0.5,
         max_tokens: 400 
       })
     });
 
     const data = await sarvamRes.json();
     
+    // 🔍 SERVER-SIDE DEBUGGING: Check your terminal/Vercel logs to see the exact API response
+    console.log("Sarvam API Response:", JSON.stringify(data, null, 2));
+
+    // Handle standard HTTP errors that fetch doesn't throw on automatically
+    if (!sarvamRes.ok) {
+        return res.status(200).json({ answer: `⚠️ API Error (${sarvamRes.status}): ${data.message || data.detail || JSON.stringify(data)}` });
+    }
+
     if (data.error) {
         return res.status(200).json({ answer: `⚠️ API Error: ${data.error.message || JSON.stringify(data.error)}` });
     }
@@ -47,9 +55,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ answer: answer.trim() });
     }
 
-    return res.status(200).json({ answer: "⚠️ Model did not return any text." });
+    return res.status(200).json({ answer: "⚠️ Model did not return any text. Check server logs for the raw response." });
 
   } catch (err) {
+    console.error("Backend Error:", err);
     return res.status(200).json({ answer: `⚠️ Backend Error: ${err.message}` });
   }
 }
