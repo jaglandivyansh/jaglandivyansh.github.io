@@ -18,7 +18,7 @@ function getDailyState() {
   // Reset streak if user missed yesterday
   if (lastClearedDate && !hasPlayedToday) {
     var todayMs = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    var lastActiveParts = lastClearedDate.split("-"); // FIX: was accidentally creating global `lastActiveDate`
+    var lastActiveParts = lastClearedDate.split("-"); 
     var lastActiveMs = new Date(
       parseInt(lastActiveParts[0], 10),
       parseInt(lastActiveParts[1], 10) - 1,
@@ -56,58 +56,58 @@ function shareScore(subj, correct, streak) {
   canvas.height = 440;
   var ctx = canvas.getContext("2d");
 
-  // Background
-  ctx.fillStyle = "#0d1117";
+  // Background (Updated to match deep dark theme)
+  ctx.fillStyle = "#05080F";
   ctx.fillRect(0, 0, 800, 440);
 
   // Top accent bar
-  ctx.fillStyle = correct ? "#10b981" : "#f43f5e";
-  ctx.fillRect(0, 0, 800, 5);
+  ctx.fillStyle = correct ? "#10b981" : "#ef4444";
+  ctx.fillRect(0, 0, 800, 6);
 
   // Streak color
-  var streakColor = streak >= 7 ? "#f59e0b" : streak >= 3 ? "#3b82f6" : "#6b7280";
+  var streakColor = streak >= 7 ? "#f59e0b" : streak >= 3 ? "#3b82f6" : "#8B9CB8";
 
   ctx.textBaseline = "top";
 
   // Brand label
-  ctx.fillStyle = "rgba(255,255,255,0.3)";
-  ctx.font = "600 12px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.fillText("STUDYLAB · DAILY ARENA", 48, 44);
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.font = "700 13px 'Syne', -apple-system, sans-serif";
+  ctx.fillText("STUDYLAB · DAILY ARENA ", 48, 44);
 
   // Result headline
-  ctx.fillStyle = correct ? "#10b981" : "#f43f5e";
-  ctx.font = "bold 42px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.fillText(correct ? "Correct!" : "Attempted", 48, 72);
+  ctx.fillStyle = correct ? "#10b981" : "#ef4444";
+  ctx.font = "800 46px 'Syne', -apple-system, sans-serif";
+  ctx.fillText(correct ? "Mission Cleared!" : "Attempted", 48, 72);
 
-  // Subject tag background (rounded rect via arc)
+  // Subject tag background 
   var tagLabel = subj.toUpperCase();
-  var tagW = ctx.measureText(tagLabel).width + 24;
-  ctx.fillStyle = "rgba(59,130,246,0.18)";
+  var tagW = ctx.measureText(tagLabel).width + 28;
+  ctx.fillStyle = "rgba(59,130,246,0.15)";
   ctx.beginPath();
-  ctx.roundRect(48, 148, tagW, 28, 6);
+  ctx.roundRect(48, 148, tagW, 30, 8);
   ctx.fill();
-  ctx.fillStyle = "#60a5fa";
-  ctx.font = "700 12px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.fillText(tagLabel, 60, 156);
+  ctx.fillStyle = "#60A5FA";
+  ctx.font = "700 13px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText(tagLabel, 62, 156);
 
   // Streak label
-  ctx.fillStyle = "rgba(255,255,255,0.3)";
-  ctx.font = "600 12px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.font = "700 13px -apple-system, BlinkMacSystemFont, sans-serif";
   ctx.fillText("CURRENT STREAK", 48, 210);
 
   // Streak number
   ctx.fillStyle = streakColor;
-  ctx.font = "bold 64px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.font = "800 68px 'Syne', -apple-system, sans-serif";
   ctx.fillText(String(streak), 48, 232);
 
   // "days" label beside number
   var numWidth = ctx.measureText(String(streak)).width;
   ctx.fillStyle = streakColor;
-  ctx.font = "600 20px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.fillText("days", 48 + numWidth + 10, 268);
+  ctx.font = "700 22px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("days", 48 + numWidth + 12, 268);
 
   // Divider line
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.strokeStyle = "rgba(255,255,255,0.1)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(48, 340);
@@ -115,11 +115,11 @@ function shareScore(subj, correct, streak) {
   ctx.stroke();
 
   // URL
-  ctx.fillStyle = "rgba(255,255,255,0.18)";
-  ctx.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.fillText("studylab-inky.vercel.app", 48, 396);
+  ctx.fillStyle = "rgba(255,255,255,0.3)";
+  ctx.font = "500 13px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("studylab.app", 48, 376);
 
-  var textDescription = "StudyLab Daily Arena | " + subj + " | Streak: " + streak + " days → studylab-inky.vercel.app";
+  var textDescription = "StudyLab Daily Arena | " + subj + " | Streak: " + streak + " days → studylab.app";
 
   canvas.toBlob(function(blob) {
     if (!blob) return;
@@ -141,25 +141,33 @@ function shareScore(subj, correct, streak) {
 
 // ─── MAIN DAILY ARENA PAGE ────────────────────────────────────────
 function pgDaily() {
-  var w = el("div", { css: {
-    maxWidth: "580px",
-    margin: "0 auto",
-    padding: "28px 16px 72px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  var w = el("div", { cls: "fd" });
+  if (typeof makeNav === 'function') w.appendChild(makeNav("daily"));
+
+  var wrap = el("div", { css: {
+    maxWidth: "680px", margin: "0 auto", padding: "0 20px 80px", position: "relative"
   }});
+
+  // Dynamic Ambient Glow
+  var bgGlow = el("div", {
+    css: {
+      position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)",
+      width: "400px", height: "400px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)",
+      opacity: "0.08", filter: "blur(60px)", pointerEvents: "none", zIndex: "-1"
+    }
+  });
+  wrap.appendChild(bgGlow);
 
   // Loading guard
   if (!window.SUBJ || !window.QD || Object.keys(window.QD).length === 0) {
-    w.appendChild(el("div", { css: {
-      textAlign: "center", padding: "80px 20px",
-      color: "var(--muted, #888)", fontSize: "0.9rem"
-    }, txt: "Loading..." }));
+    wrap.appendChild(el("div", { css: {
+      textAlign: "center", padding: "80px 20px", color: "var(--muted)", fontSize: "0.95rem"
+    }, txt: "Loading today's challenge..." }));
+    w.appendChild(wrap);
     return w;
   }
 
   var appState = getDailyState();
-
-  // Build flat question pool from all subjects
   var allQ = [];
   window.SUBJ.forEach(function(subj) {
     (window.QD[subj] || []).forEach(function(item) {
@@ -168,9 +176,8 @@ function pgDaily() {
   });
 
   if (allQ.length === 0) {
-    w.appendChild(el("div", { css: {
-      textAlign: "center", padding: "40px", color: "var(--muted, #888)"
-    }, txt: "No questions configured yet." }));
+    wrap.appendChild(el("div", { css: { textAlign: "center", padding: "60px", color: "var(--muted)" }, txt: "No questions configured yet." }));
+    w.appendChild(wrap);
     return w;
   }
 
@@ -178,7 +185,6 @@ function pgDaily() {
   var Q     = entry.data;
   var Subj  = entry.subjectName;
 
-  // Formatted date string
   var now    = new Date();
   var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var WDAYS  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -186,90 +192,79 @@ function pgDaily() {
 
   // ── HEADER ──────────────────────────────────────────────────────
   var hdr = el("div", { css: {
-    display: "flex", alignItems: "flex-start",
-    justifyContent: "space-between", marginBottom: "26px"
+    display: "flex", alignItems: "center", justifyContent: "space-between", 
+    marginBottom: "32px", marginTop: "20px"
   }});
 
-  // Left: date + title + subtitle
   var hLeft = el("div", {});
   hLeft.appendChild(el("div", { css: {
-    fontSize: "0.72rem", fontWeight: "600", color: "var(--muted, #999)",
-    textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: "7px"
+    fontSize: "0.75rem", fontWeight: "700", color: "var(--accent2)",
+    textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px"
   }, txt: dateStr }));
   hLeft.appendChild(el("div", { css: {
-    fontSize: "1.55rem", fontWeight: "800", letterSpacing: "-0.025em",
-    color: "var(--text, #111)", lineHeight: "1.1"
-  }, txt: "Daily Arena" }));
+    fontSize: "2rem", fontWeight: "800", letterSpacing: "-0.03em",
+    color: "var(--text)", fontFamily: "var(--font-display)", lineHeight: "1.1"
+  }, txt: "Daily Arena " }));
   hLeft.appendChild(el("div", { css: {
-    fontSize: "0.8rem", color: "var(--muted, #999)", marginTop: "5px"
-  }, txt: "One question · every 24 hours" }));
+    fontSize: "0.85rem", color: "var(--muted)", marginTop: "6px"
+  }, txt: "One high-yield question. Every 24 hours." }));
   hdr.appendChild(hLeft);
 
-  // Right: adaptive streak badge
-  // Color shifts with milestone: gray < 3 days, blue 3–6, amber 7+
-  var sColor  = appState.streak >= 7 ? "#b45309" : appState.streak >= 3 ? "#1d4ed8" : "#6b7280";
-  var sBg     = appState.streak >= 7 ? "rgba(251,191,36,0.12)" : appState.streak >= 3 ? "rgba(37,99,235,0.1)" : "rgba(0,0,0,0.05)";
-  var sBorder = appState.streak >= 7 ? "rgba(245,158,11,0.3)" : appState.streak >= 3 ? "rgba(37,99,235,0.25)" : "rgba(0,0,0,0.1)";
+  var sColor  = appState.streak >= 7 ? "#f59e0b" : appState.streak >= 3 ? "var(--accent)" : "var(--muted)";
+  var sBg     = appState.streak >= 7 ? "rgba(245,158,11,0.15)" : appState.streak >= 3 ? "var(--accent-glow)" : "var(--card2)";
+  var sBorder = appState.streak >= 7 ? "rgba(245,158,11,0.4)" : appState.streak >= 3 ? "rgba(59,130,246,0.4)" : "var(--border)";
   var sEmoji  = appState.streak >= 7 ? "🔥" : appState.streak >= 3 ? "⚡" : "📅";
 
   var sPill = el("div", { css: {
-    display: "flex", alignItems: "center", gap: "6px",
-    padding: "8px 14px", borderRadius: "22px",
-    background: sBg, border: "1px solid " + sBorder
+    display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", 
+    borderRadius: "20px", background: "var(--glass-bg)", 
+    border: "1px solid " + sBorder, backdropFilter: "blur(12px)",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.15)"
   }});
-  sPill.appendChild(el("span", { css: { fontSize: "1rem", lineHeight: "1" }, txt: sEmoji }));
-  sPill.appendChild(el("span", { css: {
-    fontSize: "1rem", fontWeight: "800", color: sColor, lineHeight: "1"
-  }, txt: String(appState.streak) }));
-  sPill.appendChild(el("span", { css: {
-    fontSize: "0.72rem", fontWeight: "600", color: sColor, opacity: "0.75"
-  }, txt: appState.streak === 1 ? "day" : "days" }));
+  sPill.appendChild(el("span", { css: { fontSize: "1.2rem", lineHeight: "1" }, txt: sEmoji }));
+  var sTextCol = el("div", { css: { display: "flex", flexDirection: "column" }});
+  sTextCol.appendChild(el("span", { css: { fontSize: "1.2rem", fontWeight: "800", color: sColor, lineHeight: "1", fontFamily: "var(--font-display)" }, txt: String(appState.streak) }));
+  sTextCol.appendChild(el("span", { css: { fontSize: "0.65rem", fontWeight: "700", color: sColor, textTransform: "uppercase", letterSpacing: "0.05em", opacity: "0.8" }, txt: "Streak" }));
+  sPill.appendChild(sTextCol);
+  
   hdr.appendChild(sPill);
-  w.appendChild(hdr);
+  wrap.appendChild(hdr);
 
   // ── QUESTION CARD ────────────────────────────────────────────────
   var qCard = el("div", { css: {
-    background: "var(--card, #fff)",
-    border: "1px solid var(--border, #e5e7eb)",
-    borderRadius: "20px",
-    overflow: "hidden",
-    marginBottom: "14px"
+    background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    borderRadius: "24px", overflow: "hidden", marginBottom: "24px",
+    boxShadow: "0 12px 40px rgba(0,0,0,0.15)"
   }});
 
-  // Thin gradient top accent (signals "active challenge")
-  qCard.appendChild(el("div", { css: {
-    height: "3px",
-    background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)"
-  }}));
+  // Glowing Top Border
+  qCard.appendChild(el("div", { css: { height: "4px", background: "linear-gradient(90deg, var(--accent) 0%, #8b5cf6 100%)" }}));
 
-  var qBody = el("div", { css: { padding: "22px 20px 20px" }});
+  var qBody = el("div", { css: { padding: "32px" }});
 
-  // Subject + topic pills
-  var pillRow = el("div", { css: {
-    display: "flex", alignItems: "center", gap: "8px",
-    flexWrap: "wrap", marginBottom: "14px"
-  }});
+  // Subject Badge
+  var pillRow = el("div", { css: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "20px" }});
   pillRow.appendChild(el("span", { css: {
-    fontSize: "0.65rem", fontWeight: "800", padding: "4px 9px", borderRadius: "6px",
-    background: "rgba(59,130,246,0.08)", color: "#2563eb",
-    textTransform: "uppercase", letterSpacing: "0.07em"
+    fontSize: "0.7rem", fontWeight: "800", padding: "6px 12px", borderRadius: "8px",
+    background: "var(--accent-glow)", color: "var(--accent)", border: "1px solid rgba(59,130,246,0.3)",
+    textTransform: "uppercase", letterSpacing: "0.08em"
   }, txt: Subj }));
+  
   if (Q.topic) {
-    pillRow.appendChild(el("span", { css: {
-      fontSize: "0.75rem", color: "var(--muted, #999)", fontWeight: "500"
-    }, txt: Q.topic }));
+    pillRow.appendChild(el("span", { css: { fontSize: "0.8rem", color: "var(--muted)", fontWeight: "600" }, txt: Q.topic }));
   }
   qBody.appendChild(pillRow);
 
-  // Question text
+  // Question Text
   qBody.appendChild(el("p", { css: {
-    fontSize: "1.03rem", fontWeight: "600", lineHeight: "1.65",
-    color: "var(--text, #111)", margin: "0 0 20px"
+    fontSize: "1.15rem", fontWeight: "600", lineHeight: "1.7",
+    color: "var(--text)", margin: "0 0 28px", fontFamily: "var(--font-body)"
   }, txt: Q.q }));
 
   // ── OPTIONS ──────────────────────────────────────────────────────
   var LABELS = ["A", "B", "C", "D", "E"];
-  var optsWrap = el("div", { css: { display: "flex", flexDirection: "column", gap: "8px" }});
+  var optsWrap = el("div", { css: { display: "flex", flexDirection: "column", gap: "12px" }});
   var optionsList = Q.o || [];
 
   optionsList.forEach(function(optText, idx) {
@@ -279,64 +274,52 @@ function pgDaily() {
     var isCorr = (idx === Q.a);
     var locked = appState.hasPlayedToday;
 
-    // Option button style
     var btnCss = {
-      width: "100%", display: "flex", alignItems: "flex-start", gap: "11px",
-      padding: "12px 15px", borderRadius: "12px",
-      border: "1px solid var(--border, #e5e7eb)",
-      background: "var(--bg, #f8fafc)",
+      width: "100%", display: "flex", alignItems: "center", gap: "16px",
+      padding: "16px 20px", borderRadius: "16px",
+      border: "1.5px solid var(--border)", background: "var(--card2)",
       textAlign: "left", cursor: locked ? "default" : "pointer",
-      fontSize: "0.91rem", fontWeight: "500",
-      color: "var(--text, #333)", lineHeight: "1.5",
-      transition: "border-color .12s, background .12s"
+      fontSize: "0.95rem", fontWeight: "500", color: "var(--text)", lineHeight: "1.5",
+      transition: "all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)"
     };
 
-    // Label badge (A / B / C / D prefix)
     var lblCss = {
-      flexShrink: "0", width: "22px", height: "22px", borderRadius: "6px",
-      background: "var(--border, #e8eaed)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: "0.68rem", fontWeight: "800",
-      color: "var(--muted, #999)", marginTop: "1px"
+      flexShrink: "0", width: "28px", height: "28px", borderRadius: "8px",
+      background: "var(--border)", display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: "0.8rem", fontWeight: "800", color: "var(--text)", fontFamily: "var(--font-display)"
     };
 
-    // Apply locked-state colors
     if (locked) {
       if (isCorr) {
-        btnCss.background  = "rgba(16,185,129,0.07)";
+        btnCss.background  = "rgba(16,185,129,0.1)";
         btnCss.borderColor = "#10b981";
-        btnCss.color       = "#065f46";
-        lblCss.background  = "#10b981";
-        lblCss.color       = "#fff";
+        btnCss.boxShadow = "0 0 0 1px rgba(16,185,129,0.3)";
+        lblCss.background  = "#10b981"; lblCss.color = "#fff";
       } else if (isSel) {
-        btnCss.background  = "rgba(239,68,68,0.07)";
+        btnCss.background  = "rgba(239,68,68,0.1)";
         btnCss.borderColor = "#ef4444";
-        btnCss.color       = "#991b1b";
-        lblCss.background  = "#ef4444";
-        lblCss.color       = "#fff";
+        lblCss.background  = "#ef4444"; lblCss.color = "#fff";
       } else {
-        btnCss.opacity = "0.38";
+        btnCss.opacity = "0.5";
       }
     }
 
-    // Label symbol: tick/cross when locked, letter otherwise
-    var lblSymbol = locked && isCorr ? "✓"
-      : (locked && isSel && !isCorr) ? "✗"
-      : (LABELS[idx] || String(idx + 1));
+    var lblSymbol = locked && isCorr ? "✓" : (locked && isSel && !isCorr) ? "✗" : LABELS[idx];
 
     var btn = el("button", { css: btnCss });
     btn.appendChild(el("span", { css: lblCss, txt: lblSymbol }));
     btn.appendChild(el("span", { txt: optText }));
 
-    // Hover effects (only before answering)
     if (!locked) {
       btn.onmouseover = function() {
-        this.style.borderColor = "#3b82f6";
-        this.style.background  = "rgba(59,130,246,0.04)";
+        this.style.borderColor = "var(--accent)";
+        this.style.background  = "var(--accent-glow)";
+        this.style.transform = "translateX(4px)";
       };
       btn.onmouseout = function() {
-        this.style.borderColor = "var(--border, #e5e7eb)";
-        this.style.background  = "var(--bg, #f8fafc)";
+        this.style.borderColor = "var(--border)";
+        this.style.background  = "var(--card2)";
+        this.style.transform = "translateX(0)";
       };
 
       btn.onclick = function() {
@@ -344,120 +327,107 @@ function pgDaily() {
         var newStreak  = isCorrect ? (appState.streak + 1) : 0;
 
         localStorage.setItem("sl_daily_last_cleared", appState.todayKey);
-        localStorage.setItem("sl_daily_user_ans",    String(idx));
-        localStorage.setItem("sl_daily_streak",      String(newStreak));
+        localStorage.setItem("sl_daily_user_ans", String(idx));
+        localStorage.setItem("sl_daily_streak", String(newStreak));
 
         if (typeof toast === "function") {
           toast(
-            isCorrect ? "Correct! Streak: " + newStreak + " day" + (newStreak !== 1 ? "s" : "") + " 🔥"
-                      : "Incorrect. Come back tomorrow.",
+            isCorrect ? "Brilliant! Streak: " + newStreak + " day" + (newStreak !== 1 ? "s" : "") + " 🔥"
+                      : "Incorrect. Try again tomorrow.",
             isCorrect ? "#10b981" : "#ef4444"
           );
         }
 
-        // FIX: original had pgDaily().innerHTML which returned undefined
         if (typeof go === "function") {
           go("daily");
         } else {
-          while (w.firstChild) w.removeChild(w.firstChild);
-          w.appendChild(pgDaily());
+          var container = document.getElementById("app") || document.body;
+          container.innerHTML = "";
+          container.appendChild(pgDaily());
         }
       };
     }
-
     optsWrap.appendChild(btn);
   });
 
   qBody.appendChild(optsWrap);
-
-  // Tap nudge (shown before answering only)
-  if (!appState.hasPlayedToday) {
-    qBody.appendChild(el("div", { css: {
-      marginTop: "16px", textAlign: "center",
-      fontSize: "0.74rem", color: "var(--muted, #bbb)"
-    }, txt: "Select an option to lock in your answer" }));
-  }
-
   qCard.appendChild(qBody);
-  w.appendChild(qCard);
+  wrap.appendChild(qCard);
 
   // ── POST-ANSWER SECTION ──────────────────────────────────────────
   if (appState.hasPlayedToday) {
     var wasCorrect = (parseInt(appState.savedAnswer, 10) === Q.a);
 
-    // Explanation card — renders only if Q.exp field is set in your question data
+    // Explanation Card
     if (Q.exp) {
       var expCard = el("div", { css: {
-        background: "rgba(59,130,246,0.05)",
-        border: "1px solid rgba(59,130,246,0.18)",
-        borderRadius: "16px", padding: "18px 20px", marginBottom: "12px"
+        background: "var(--card)", border: "1px solid var(--border)",
+        borderRadius: "20px", padding: "24px", marginBottom: "20px",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.1)"
       }});
       expCard.appendChild(el("div", { css: {
-        fontSize: "0.65rem", fontWeight: "800", color: "#2563eb",
-        textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "9px"
-      }, txt: "💡 Why this answer?" }));
+        fontSize: "0.75rem", fontWeight: "800", color: "var(--accent)",
+        textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px"
+      }, htm: "<span>💡</span> WHY THIS ANSWER?" }));
       expCard.appendChild(el("div", { css: {
-        fontSize: "0.88rem", lineHeight: "1.7", color: "var(--text, #333)"
+        fontSize: "0.95rem", lineHeight: "1.7", color: "var(--text)"
       }, txt: Q.exp }));
-      w.appendChild(expCard);
+      wrap.appendChild(expCard);
     }
 
-    // Result + share card
+    // Result & Share Card
     var resCard = el("div", { css: {
-      background: "var(--card, #fff)",
-      border: "1px solid var(--border, #e5e7eb)",
-      borderRadius: "20px", padding: "22px 20px"
+      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+      backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+      borderRadius: "20px", padding: "24px"
     }});
 
-    // Result header row
-    var resTop = el("div", { css: {
-      display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px"
-    }});
-    resTop.appendChild(el("span", { css: { fontSize: "2rem", lineHeight: "1" }, txt: wasCorrect ? "🎯" : "📖" }));
+    var resTop = el("div", { css: { display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }});
+    resTop.appendChild(el("div", { css: { 
+        fontSize: "2.5rem", background: "var(--card2)", width: "60px", height: "60px", 
+        borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border)"
+    }, txt: wasCorrect ? "🎯" : "📖" }));
 
     var resTxt = el("div", {});
     resTxt.appendChild(el("div", { css: {
-      fontSize: "0.98rem", fontWeight: "700", marginBottom: "3px",
-      color: wasCorrect ? "#059669" : "#dc2626"
-    }, txt: wasCorrect ? "Streak extended!" : "Better luck tomorrow" }));
+      fontSize: "1.2rem", fontWeight: "800", fontFamily: "var(--font-display)", marginBottom: "4px",
+      color: wasCorrect ? "#10b981" : "#ef4444"
+    }, txt: wasCorrect ? "Streak Extended!" : "Mission Failed" }));
     resTxt.appendChild(el("div", { css: {
-      fontSize: "0.81rem", color: "var(--muted, #999)", lineHeight: "1.45"
+      fontSize: "0.85rem", color: "var(--muted)", lineHeight: "1.5"
     }, txt: wasCorrect
-      ? "You're on a " + appState.streak + "-day streak. Come back tomorrow."
-      : "The correct answer is highlighted above. Review and return." }));
+      ? "You're on a " + appState.streak + "-day streak. Keep the momentum going."
+      : "The correct answer is highlighted above. Review it and return tomorrow." }));
     resTop.appendChild(resTxt);
     resCard.appendChild(resTop);
 
-    // Divider
-    resCard.appendChild(el("div", { css: {
-      height: "1px", background: "var(--border, #e5e7eb)", margin: "0 0 16px"
-    }}));
+    resCard.appendChild(el("div", { css: { height: "1px", background: "var(--border)", margin: "0 0 20px" }}));
 
-    // Countdown row
-    var nextRow = el("div", { css: {
-      display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px"
-    }});
-    nextRow.appendChild(el("span", { css: { fontSize: "0.8rem", color: "var(--muted, #999)" }, txt: "Next challenge in" }));
+    var nextRow = el("div", { css: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }});
+    nextRow.appendChild(el("span", { css: { fontSize: "0.85rem", color: "var(--muted)", fontWeight: "600" }, txt: "Next challenge unlocks in" }));
     nextRow.appendChild(el("span", { css: {
-      fontSize: "0.85rem", fontWeight: "700",
-      color: "var(--text, #111)", fontVariantNumeric: "tabular-nums"
+      fontSize: "0.95rem", fontWeight: "700", color: "var(--text)", fontVariantNumeric: "tabular-nums",
+      background: "var(--bg2)", padding: "4px 12px", borderRadius: "8px", border: "1px solid var(--border)"
     }, txt: getCountdownToMidnight() }));
     resCard.appendChild(nextRow);
 
-    // Share button
+    // Share Button
     var shareBtn = el("button", {
-      cls: "btn btnp",
       css: {
-        width: "100%", padding: "13px 0", fontSize: "0.93rem", fontWeight: "700",
-        borderRadius: "14px", border: "none",
-        display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
+        width: "100%", padding: "16px 0", fontSize: "1rem", fontWeight: "700",
+        borderRadius: "16px", border: "none", background: "linear-gradient(135deg, #3b82f6, #6366f1)", color: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+        cursor: "pointer", boxShadow: "0 8px 24px rgba(59,130,246,0.3)", transition: "all 0.2s"
       },
       onclick: function() { shareScore(Subj, wasCorrect, appState.streak); }
     });
-    shareBtn.appendChild(el("span", { txt: "Share result" }));
+    
+    shareBtn.onmouseover = function() { this.style.transform = "translateY(-2px)"; this.style.boxShadow = "0 12px 32px rgba(59,130,246,0.4)"; };
+    shareBtn.onmouseout = function() { this.style.transform = "translateY(0)"; this.style.boxShadow = "0 8px 24px rgba(59,130,246,0.3)"; };
+
+    shareBtn.appendChild(el("span", { txt: "Share Result" }));
     shareBtn.appendChild(el("svg", { attr: {
-      viewBox: "0 0 24 24", width: "15", height: "15",
-      fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round"
+      viewBox: "0 0 24 24", width: "18", height: "18", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round"
     }}, [
       el("circle", { attr: { cx: "18", cy: "5",  r: "3" }}),
       el("circle", { attr: { cx: "6",  cy: "12", r: "3" }}),
@@ -467,8 +437,9 @@ function pgDaily() {
     ]));
     resCard.appendChild(shareBtn);
 
-    w.appendChild(resCard);
+    wrap.appendChild(resCard);
   }
 
+  w.appendChild(wrap);
   return w;
 }

@@ -1,172 +1,256 @@
 window.STUDYLAB_FEEDBACK_URL = "https://formspree.io/f/mzdyqbyz";
+const DAILY_QUOTES = [
+  { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+  { text: "Arise, awake, and stop not till the goal is reached.", author: "Swami Vivekananda" },
+  { text: "Dream, dream, dream. Dreams transform into thoughts and thoughts result in action.", author: "A.P.J. Abdul Kalam" },
+  { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+  { text: "Cultivation of mind should be the ultimate aim of human existence.", author: "Dr. B.R. Ambedkar" },
+  { text: "Education is not the learning of facts, but the training of the mind to think.", author: "Albert Einstein" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+  { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+  { text: "Education is the passport to the future, for tomorrow belongs to those who prepare for it today.", author: "Malcolm X" },
+  { text: "There are no secrets to success. It is the result of preparation, hard work, and learning from failure.", author: "Colin Powell" },
+  { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+  { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+  { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" },
+  { text: "Doubt kills more dreams than failure ever will.", author: "Suzy Kassem" },
+  { text: "A year from now you may wish you had started today.", author: "Karen Lamb" },
+  { text: "The future depends on what you do today.", author: "Mahatma Gandhi" }
+];
 
-// ─── REIMAGINED DAILY INSIGHT (QUOTE) ─────────────────────────────
-function makeQuoteCard() {
-  var wrap = el("div", {
-    css: {
-      position: "relative", margin: "0 auto 40px",
-      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
-      backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-      borderRadius: "20px", padding: "32px 40px", textAlign: "center",
-      overflow: "hidden"
-    }
-  });
-
-  var quoteGlow = el("div", {
-    css: {
-      position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-      width: "200px", height: "100px", background: "radial-gradient(ellipse, #0891b2 0%, transparent 70%)",
-      opacity: "0.05", filter: "blur(40px)", pointerEvents: "none"
-    }
-  });
-  wrap.appendChild(quoteGlow);
-
-  var content = el("div", { css: { position: "relative", zIndex: "1" } });
-
-  content.appendChild(el("div", {
-    css: {
-      fontSize: "1.2rem", color: "var(--accent2)", opacity: "0.8",
-      marginBottom: "16px", fontFamily: "Georgia, serif", fontStyle: "italic"
-    },
-    txt: "“"
-  }));
-
-  content.appendChild(el("div", {
-    css: {
-      fontSize: "1.1rem", color: "var(--text)", fontWeight: "400", // FIXED
-      lineHeight: "1.6", letterSpacing: "0.02em",
-      fontFamily: "var(--font-display)", maxWidth: "80%", margin: "0 auto 16px"
-    },
-    txt: "Success in exams is not about studying everything. It is about understanding the mechanics of what matters." 
-  }));
-
-  content.appendChild(el("div", {
-    css: {
-      fontSize: ".75rem", color: "var(--text-muted)", textTransform: "uppercase",
-      letterSpacing: "0.15em", fontWeight: "700"
-    },
-    txt: "— The Architecture of Learning"
-  }));
-
-  wrap.appendChild(content);
-  return wrap;
-}
-
-// ─── REIMAGINED COSMIC HERO SECTION ───────────────────────────────
+// ─── REIMAGINED HERO SECTION (Without Skill Tree Badge) ───────────────
 function makeModernHero() {
   var wrap = el("div", {
     css: {
-      position: "relative", padding: "70px 20px 80px",
-      textAlign: "center", overflow: "hidden", marginBottom: "0px"
+      position: "relative", 
+      padding: "90px 20px 100px",
+      textAlign: "center", 
+      overflow: "hidden", 
+      marginBottom: "0px",
+      backgroundImage: "radial-gradient(var(--glass-border) 1px, transparent 1px)",
+      backgroundSize: "24px 24px",
+      backgroundPosition: "center top"
     }
   });
 
-  var glow1 = el("div", { css: { position: "absolute", top: "0%", left: "15%", width: "400px", height: "400px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)", opacity: "0.08", filter: "blur(60px)", pointerEvents: "none", transform: "translateZ(0)" } });
-  var glow2 = el("div", { css: { position: "absolute", bottom: "-10%", right: "15%", width: "450px", height: "450px", background: "radial-gradient(circle, #8b5cf6 0%, transparent 60%)", opacity: "0.06", filter: "blur(70px)", pointerEvents: "none", transform: "translateZ(0)" } });
+  var glow1 = el("div", { 
+    css: { position: "absolute", top: "-10%", left: "5%", width: "500px", height: "500px", background: "radial-gradient(circle, #6366f1 0%, transparent 60%)", opacity: "0.12", filter: "blur(80px)", pointerEvents: "none", transform: "translateZ(0)" } 
+  });
+  var glow2 = el("div", { 
+    css: { position: "absolute", bottom: "-20%", right: "5%", width: "600px", height: "600px", background: "radial-gradient(circle, #ec4899 0%, transparent 60%)", opacity: "0.08", filter: "blur(90px)", pointerEvents: "none", transform: "translateZ(0)" } 
+  });
   wrap.appendChild(glow1);
   wrap.appendChild(glow2);
 
-  var content = el("div", { css: { position: "relative", zIndex: "1", maxWidth: "720px", margin: "0 auto" } });
+  var content = el("div", { css: { position: "relative", zIndex: "1", maxWidth: "800px", margin: "0 auto" } });
 
-  var badge = el("div", {
-    css: {
-      display: "inline-flex", alignItems: "center", gap: "8px",
-      padding: "8px 16px", borderRadius: "100px",
-      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
-      backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-      fontSize: ".75rem", fontWeight: "700", color: "var(--text)",
-      marginBottom: "28px", cursor: "pointer", transition: "all 0.4s var(--spring-easing)",
-      letterSpacing: "0.04em", textTransform: "uppercase"
-    },
-    onclick: function() { go("skilltree"); }
-  });
-  badge.addEventListener("mouseenter", function() { 
-      this.style.transform = "scale(1.05) translateY(-2px)";
-      this.style.background = "var(--glass-border)"; // FIXED
-      this.style.borderColor = "var(--accent-glow)";
-  });
-  badge.addEventListener("mouseleave", function() { 
-      this.style.transform = "scale(1) translateY(0)"; 
-      this.style.background = "var(--glass-bg)";
-      this.style.borderColor = "var(--glass-border)";
-  });
-  badge.innerHTML = "<span style='color: var(--accent2)'>✦</span> <span>RPG Skill Tree Live</span>";
-  content.appendChild(badge);
-
+  // High-Impact Headline
   content.appendChild(el("h1", {
     css: {
-      fontSize: "clamp(2.8rem, 7vw, 4rem)", fontWeight: "800",
-      letterSpacing: "-0.04em", fontFamily: "var(--font-display)",
-      color: "var(--text)", lineHeight: "1.1", marginBottom: "20px", // FIXED
-      textShadow: "0 12px 32px rgba(0,0,0,0.1)"
+      fontSize: "clamp(2.8rem, 7vw, 4.5rem)", fontWeight: "800",
+      letterSpacing: "-0.03em", fontFamily: "var(--font-display)",
+      color: "var(--text)", lineHeight: "1.1", marginBottom: "24px",
+      textShadow: "0 12px 32px rgba(0,0,0,0.08)"
     },
-    htm: "Master the Logic. <br><span style='background: linear-gradient(135deg, #4F8EF7, #A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>Ace the Exam.</span>"
+    htm: "Don't Just Study. <br><span style='background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: gradient-shift 3s ease infinite;'>Conquer the Syllabus.</span>"
   }));
 
+  // Compelling Subtitle
   content.appendChild(el("p", {
     css: {
-      fontSize: "1.05rem", color: "var(--muted)", lineHeight: "1.6",
-      marginBottom: "40px", fontWeight: "300", maxWidth: "85%", margin: "0 auto 40px"
+      fontSize: "clamp(1rem, 2vw, 1.15rem)", color: "var(--muted)", lineHeight: "1.6",
+      marginBottom: "48px", fontWeight: "400", maxWidth: "90%", margin: "0 auto 48px"
     },
-    txt: "A distraction-free, analytical learning lab for UPSC and State PCS. Decode 4,000+ curated MCQs with instant AI-powered breakdowns."
+    txt: "A distraction-free, gamified learning lab for UPSC & State PCS. Track your progress, unlock skills, and master concepts faster."
   }));
 
+  // Call To Action Row
   var ctaRow = el("div", { css: { display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "48px" } });
   
-  // Inside your makeModernHero function in page-home.js:
-var primaryBtn = el("button", {
+  // Primary Button (Glowing & Highly Clickable)
+  var primaryBtn = el("button", {
     css: {
-      padding: "14px 32px", borderRadius: "14px", border: "1px solid rgba(79, 142, 247, 0.3)",
-      background: "linear-gradient(135deg, rgba(79, 142, 247, 0.15), rgba(59, 130, 246, 0.05))", 
-      color: "var(--text)", fontWeight: "600", backdropFilter: "blur(12px)",
-      fontSize: "1rem", cursor: "pointer",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.1)", 
-      transition: "all 0.4s var(--spring-easing)"
+      padding: "16px 36px", borderRadius: "16px", border: "none",
+      background: "linear-gradient(135deg, #3b82f6, #6366f1)", 
+      color: "#ffffff", fontWeight: "700", 
+      fontSize: "1.05rem", cursor: "pointer", fontFamily: "var(--font-display)",
+      boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.25)", 
+      transition: "all 0.4s var(--spring-easing)",
+      display: "flex", alignItems: "center", gap: "8px"
     },
-    onclick: function() { 
-        go("govtupdates"); // Redirects to the Government Updates page
-    }
-}, "View Updates →"); // Updated Button Text
+    onclick: function() { go("govtupdates"); }
+  });
+  primaryBtn.innerHTML = "View Updates <span style='font-size: 1.1rem;'></span>";
   
   primaryBtn.addEventListener("mouseenter", function() { 
-      this.style.transform = "scale(1.04) translateY(-2px)"; 
-      this.style.background = "linear-gradient(135deg, rgba(79, 142, 247, 0.25), rgba(59, 130, 246, 0.1))";
-      this.style.boxShadow = "0 12px 32px rgba(79, 142, 247, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)"; 
+      this.style.transform = "scale(1.05) translateY(-3px)"; 
+      this.style.boxShadow = "0 20px 35px -5px rgba(99, 102, 241, 0.6), inset 0 2px 4px rgba(255,255,255,0.3)"; 
   });
   primaryBtn.addEventListener("mouseleave", function() { 
       this.style.transform = "scale(1) translateY(0)"; 
-      this.style.background = "linear-gradient(135deg, rgba(79, 142, 247, 0.15), rgba(59, 130, 246, 0.05))";
-      this.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)"; 
+      this.style.boxShadow = "0 10px 25px -5px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.25)"; 
   });
   
+  // Secondary Button (Glassmorphic)
   var secondaryBtn = el("button", {
     css: {
-      padding: "14px 32px", borderRadius: "14px", border: "1px solid var(--glass-border)",
+      padding: "16px 36px", borderRadius: "16px", border: "1px solid var(--glass-border)",
       background: "var(--glass-bg)", color: "var(--text)", fontWeight: "600",
-      backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-      fontSize: "1rem", cursor: "pointer", fontFamily: "var(--font-body)", 
-      transition: "all 0.4s var(--spring-easing)"
+      backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+      fontSize: "1.05rem", cursor: "pointer", fontFamily: "var(--font-body)", 
+      transition: "all 0.4s var(--spring-easing)",
+      display: "flex", alignItems: "center", gap: "8px"
     },
     onclick: function() { go("shorts"); }
-  }, "Study Shorts");
+  });
+  secondaryBtn.innerHTML = "Study Shorts";
   
   secondaryBtn.addEventListener("mouseenter", function() { 
-      this.style.transform = "scale(1.04) translateY(-2px)";
-      this.style.background = "var(--glass-border)"; // FIXED
+      this.style.transform = "scale(1.05) translateY(-3px)";
+      this.style.background = "var(--glass-border)"; 
+      this.style.borderColor = "var(--muted)";
   });
   secondaryBtn.addEventListener("mouseleave", function() { 
       this.style.transform = "scale(1) translateY(0)";
       this.style.background = "var(--glass-bg)"; 
+      this.style.borderColor = "var(--glass-border)";
   });
   
   ctaRow.appendChild(primaryBtn);
   ctaRow.appendChild(secondaryBtn);
   content.appendChild(ctaRow);
 
+  // Trust / Feature Pills (Social Proof for Students)
+  var featuresRow = el("div", {
+      css: {
+          display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap",
+          paddingTop: "24px", borderTop: "1px solid var(--glass-border)"
+      }
+  });
+
+  var features = [
+      { icon: "🎯", text: "Curated MCQs" },
+      { icon: "🧠", text: "AI Doubt Solver" },
+      { icon: "⚡", text: "Bite-sized Logic" }
+  ];
+
+  features.forEach(function(f) {
+      var featCard = el("div", {
+          css: {
+              display: "flex", alignItems: "center", gap: "8px",
+              color: "var(--muted)", fontSize: "0.85rem", fontWeight: "600",
+              letterSpacing: "0.02em"
+          }
+      });
+      featCard.innerHTML = `<span style="font-size: 1.1rem;">${f.icon}</span> <span>${f.text}</span>`;
+      featuresRow.appendChild(featCard);
+  });
+
+  content.appendChild(featuresRow);
   wrap.appendChild(content);
+
   return wrap;
 }
 
+
+// ─── REIMAGINED DAILY INSIGHT (AUTO-UPDATING QUOTE) ───────────────
+function makeQuoteCard() {
+  // 1. Calculate the Quote of the Day based on the current date
+  var today = new Date();
+  // We use the day of the year to pick an index, ensuring it changes daily
+  var dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+  var quoteIndex = dayOfYear % DAILY_QUOTES.length; 
+  var currentQuote = DAILY_QUOTES[quoteIndex];
+
+  var wrap = el("div", {
+    css: {
+      position: "relative", margin: "0 auto 40px", maxWidth: "800px",
+      background: "linear-gradient(145deg, var(--glass-bg), transparent)",
+      border: "1px solid var(--glass-border)",
+      borderTop: "1px solid rgba(255,255,255,0.1)", 
+      backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+      borderRadius: "24px", padding: "40px", textAlign: "center",
+      overflow: "hidden", cursor: "default",
+      transition: "transform 0.4s var(--spring-easing), box-shadow 0.4s ease"
+    }
+  });
+
+  var quoteGlow = el("div", {
+    css: {
+      position: "absolute", top: "-20%", left: "50%", transform: "translateX(-50%)",
+      width: "300px", height: "200px", 
+      background: "radial-gradient(ellipse, var(--accent) 0%, transparent 70%)",
+      opacity: "0.06", filter: "blur(50px)", pointerEvents: "none", 
+      transition: "opacity 0.4s ease"
+    }
+  });
+  wrap.appendChild(quoteGlow);
+
+  wrap.addEventListener("mouseenter", function() {
+    this.style.transform = "translateY(-4px)";
+    this.style.boxShadow = "0 16px 40px rgba(0,0,0,0.08)";
+    quoteGlow.style.opacity = "0.15";
+  });
+  wrap.addEventListener("mouseleave", function() {
+    this.style.transform = "translateY(0)";
+    this.style.boxShadow = "none";
+    quoteGlow.style.opacity = "0.06";
+  });
+
+  var content = el("div", { css: { position: "relative", zIndex: "1" } });
+
+  var badge = el("div", {
+    css: {
+      display: "inline-flex", alignItems: "center", gap: "8px",
+      padding: "6px 14px", borderRadius: "100px", background: "var(--bg2)",
+      border: "1px solid var(--border)", fontSize: "0.7rem", fontWeight: "700",
+      color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em",
+      marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
+    },
+    htm: "<span style='color: var(--accent); font-size: 0.9rem;'>✦</span> DAILY INSIGHT"
+  });
+  content.appendChild(badge);
+
+  // Injecting the dynamic quote text
+  content.appendChild(el("div", {
+    css: {
+      fontSize: "clamp(1.2rem, 3vw, 1.6rem)", color: "var(--text)", fontWeight: "500", 
+      lineHeight: "1.5", letterSpacing: "-0.01em",
+      fontFamily: "var(--font-display)", maxWidth: "85%", margin: "0 auto 28px",
+      textShadow: "0 4px 12px rgba(0,0,0,0.05)"
+    },
+    txt: "“" + currentQuote.text + "”" 
+  }));
+
+  var authorRow = el("div", { 
+      css: { display: "flex", alignItems: "center", justifyContent: "center", gap: "16px" } 
+  });
+  
+  var lineLeft = el("div", { css: { width: "40px", height: "1px", background: "var(--border)" } });
+  
+  // Injecting the dynamic author
+  var authorText = el("div", {
+    css: {
+      fontSize: ".85rem", color: "var(--muted)", textTransform: "uppercase",
+      letterSpacing: "0.15em", fontWeight: "700"
+    },
+    txt: currentQuote.author
+  });
+  var lineRight = el("div", { css: { width: "40px", height: "1px", background: "var(--border)" } });
+
+  authorRow.appendChild(lineLeft);
+  authorRow.appendChild(authorText);
+  authorRow.appendChild(lineRight);
+  
+  content.appendChild(authorRow);
+
+  wrap.appendChild(content);
+  return wrap;
+}
 
 // ─── AI DOUBT SOLVER ─────────────────────────────────────────────
 var ADS_LOADING = false;
@@ -199,9 +283,9 @@ function makeAIDoubtSolver() {
       width: "40px", height: "40px", flexShrink: "0", background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
       borderRadius: "11px", display: "flex", alignItems: "center", justifyContent: "center",
       boxShadow: "0 4px 12px rgba(99,102,241,0.45)", fontFamily: "var(--font-display)", 
-      fontSize: "1rem", fontWeight: "800", color: "#fff", letterSpacing: "-0.02em"
+      fontSize: "1.1rem", fontWeight: "800", color: "#fff", letterSpacing: "-0.02em"
     }
-  }, "S");
+  }, "G"); // Updated from 'S' to 'G' for Gemini
 
   var barText = el("div");
   barText.appendChild(el("div", {
@@ -240,7 +324,9 @@ function makeAIDoubtSolver() {
   });
   welcome.appendChild(el("div", {css: {fontSize: "1.8rem", marginBottom: "8px"}}, "🎓"));
   welcome.appendChild(el("div", {css: {fontWeight: "700", color: "var(--text)", marginBottom: "5px", fontFamily: "var(--font-display)"}}, "Ask me anything!"));
-  welcome.appendChild(el("div", {css: {fontSize: ".8rem", color: "var(--muted)", lineHeight: "1.5"}}, "History, Geography, Polity, Economy, Science, GK — I'm here to help."));
+  
+  // Updated the welcome text to reflect the 13 generated subjects
+  welcome.appendChild(el("div", {css: {fontSize: ".8rem", color: "var(--muted)", lineHeight: "1.5"}}, "History, Geography, Polity, Economy, Sciences, Art & Culture, Computer & more — I'm here to help."));
   chatArea.appendChild(welcome);
 
   var messages = el("div", {id: "ads-messages"});
@@ -289,9 +375,10 @@ function makeAIDoubtSolver() {
   inputRow.appendChild(sendBtn);
   panel.appendChild(inputRow);
 
+  // Updated attribution to Gemini
   panel.appendChild(el("div", {
     css: {textAlign: "center", fontSize: ".62rem", color: "var(--subtle)", padding: "6px 14px 12px", letterSpacing: "0.04em"}
-  }, "Powered by Sarvam AI · Made for India 🇮🇳"));
+  }, "Powered by Gemini · Made for India 🇮🇳"));
 
   var isOpen = true; 
   
@@ -380,7 +467,8 @@ function adsCreateBubble(type, text) {
       : "U";
     avatar.textContent = userName;
   } else {
-    avatar.textContent = "S";
+    // Updated AI avatar from 'S' to 'G'
+    avatar.textContent = "G";
     avatar.style.fontFamily = "var(--font-display)";
     avatar.style.fontWeight = "800";
     avatar.style.fontSize = ".75rem";
@@ -418,7 +506,9 @@ function adsCreateTyping() {
       background: "linear-gradient(135deg, #6366F1, #8B5CF6)", overflow: "hidden"
     }
   });
-  avatar.textContent = "S";
+  
+  // Updated AI typing avatar from 'S' to 'G'
+  avatar.textContent = "G";
   avatar.style.background = "linear-gradient(135deg, #6366F1, #8B5CF6)";
   avatar.style.fontFamily = "var(--font-display)";
   avatar.style.fontWeight = "800";
@@ -451,87 +541,146 @@ function adsScrollChat() {
   if (area) setTimeout(function() { area.scrollTop = area.scrollHeight; }, 50);
 }
 
-// ─── MAIN PAGE RENDER ────────────────────────────────────────────
+// ─── MAIN PAGE RENDER (Without Skill Tree Banner) ────────────────────
 function pgHome(){
   var tot=SUBJ.reduce(function(s,k){return s+(QD[k]||[]).length;},0);
   var w=el("div",{cls:"fd"});
   w.appendChild(makeNav("home"));
 
   w.appendChild(makeModernHero());
-  w.appendChild(makeDeadlineWidget());
   if (typeof makeQuoteCard === 'function') w.appendChild(makeQuoteCard());
 
-  // ─── REIMAGINED RPG SKILL TREE BANNER ────────────────────────────
-  var skillTreeBanner = el("div", {
-    css: {
-      position: "relative", overflow: "hidden",
-      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
-      backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-      borderRadius: "24px", padding: "32px 36px", marginBottom: "40px",
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      cursor: "pointer", transition: "all 0.5s var(--spring-easing)", zIndex: "2"
-    },
-    onclick: function() { go('skilltree'); }
-  });
-
-  var stGlow = el("div", {
-    css: {
-      position: "absolute", top: "-50%", left: "-10%",
-      width: "300px", height: "300px", background: "radial-gradient(circle, #7c3aed 0%, transparent 70%)",
-      opacity: "0.15", filter: "blur(50px)", pointerEvents: "none", transition: "opacity 0.4s ease"
-    }
-  });
-  skillTreeBanner.appendChild(stGlow);
-
-  skillTreeBanner.addEventListener("mouseenter", function() { 
-    this.style.transform = "scale(1.02) translateY(-4px)"; 
-    this.style.background = "var(--glass-border)"; // FIXED
-    this.style.borderColor = "rgba(124, 58, 237, 0.4)";
-    this.style.boxShadow = "0 24px 48px rgba(0,0,0,0.1), 0 0 0 1px rgba(124, 58, 237, 0.2)";
-    stGlow.style.opacity = "0.25";
-  });
-  skillTreeBanner.addEventListener("mouseleave", function() { 
-    this.style.transform = "scale(1) translateY(0)"; 
-    this.style.background = "var(--glass-bg)";
-    this.style.borderColor = "var(--glass-border)";
-    this.style.boxShadow = "none";
-    stGlow.style.opacity = "0.15";
-  });
-
-  var stbLeft = el("div", {css: {display: "flex", alignItems: "center", gap: "20px", position: "relative", zIndex: "1"}});
-  
-  var stIcon = el("div", {
-    css: {
-      width: "56px", height: "56px", borderRadius: "16px",
-      background: "rgba(124, 58, 237, 0.15)", border: "1px solid rgba(124, 58, 237, 0.3)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: "1.5rem", color: "#a78bfa", filter: "drop-shadow(0 4px 12px rgba(124,58,237,0.4))"
-    }
-  });
-  stIcon.innerHTML = "✧"; 
-  stbLeft.appendChild(stIcon);
-  
-  var stbText = el("div");
-  stbText.appendChild(el("div", {css:{fontSize:"1.4rem", color: "var(--text)", fontWeight:"800", fontFamily:"var(--font-display)", marginBottom:"6px", letterSpacing: "-0.02em"}}, "Neural Skill Graph")); // FIXED
-  stbText.appendChild(el("div", {css:{fontSize:".95rem", color: "var(--text-muted)", fontWeight: "300", lineHeight: "1.5"}} , "Master topics sequentially and unlock deeper knowledge nodes."));
-  
-  stbLeft.appendChild(stbText);
-  skillTreeBanner.appendChild(stbLeft);
-  
-  skillTreeBanner.appendChild(el("div", {css:{fontSize:"1.4rem", color: "#a78bfa", fontWeight:"400", position: "relative", zIndex: "1", transition: "transform 0.3s ease"}}, "→"));
-
-  w.appendChild(skillTreeBanner);
   w.appendChild(makeAIDoubtSolver());
 
-  var SD={
-    History:{color:"#7c3aed",bg:"#f5f3ff",desc:"Explore ancient civilizations, medieval kingdoms, freedom struggle, and modern India.",topics:["Indus Valley","Mughal Empire","British Raj","Independence Movement","Ancient India"],sym:["⚔️","🏛️","📜","👑","⚛️","🛡️"]},
-    Geography:{color:"#059669",bg:"#ecfdf5",desc:"From Himalayas to coastal plains, rivers, climate zones, and world physical features.",topics:["Rivers & Lakes","Climate","Physical Features","World Map","Agriculture"],sym:["🌍","🏔️","🌊","🌿","🌋","🌎"]},
-    Polity:{color:"#dc2626",bg:"#fef2f2",desc:"Indian Constitution, Parliament, judiciary, fundamental rights and governance structure.",topics:["Constitution","Parliament","Fundamental Rights","Judiciary","Local Governance"],sym:["⚖️","🏛️","📜","🔐","🇮🇳"]},
-    Economy:{color:"#0284c7",bg:"#f0f9ff",desc:"National income, banking, budget, five-year plans, poverty and economic reforms.",topics:["GDP & Growth","Banking","Union Budget","Poverty","Agriculture Economy"],sym:["📊","💰","🏦","📈","💴"]},
-    Science:{color:"#0891b2",bg:"#ecfeff",desc:"Physics, chemistry, biology, technology, space, inventions and scientific discoveries.",topics:["Physics","Chemistry","Biology","Space Tech","Inventions"],sym:["🔭","⚛️","🧪","🚀","⚡"]},
-    GK:{color:"#d97706",bg:"#fffbeb",desc:"Current affairs, awards, sports, national symbols, important days and miscellaneous facts.",topics:["Current Affairs","Awards","Sports","National Symbols","Important Days"],sym:["🏆","🌟","💡","🇮🇳","📰"]},
-    "Current Affairs":{color:"#3b82f6",bg:"#eff6ff",desc:"Stay updated with national, international, economy, sports, and tech news.",topics:["National","International","Economy","Sports","Tech"],sym:["📰","🌐","🏆","🚀","💰","🔥"]},
-    "Previous Year Questions":{color:"#8b5cf6",bg:"#f5f3ff",desc:"Practice with actual past exam papers to understand patterns and difficulty levels.",topics:["UPSC","SSC CGL","Railways","Banking","State PCS"],sym:["📜","🕰️","🎯","📝","📚","🔍"]}
+  var SD = {
+    History: { 
+        color: "#7c3aed", bg: "#f5f3ff", 
+        desc: "Ancient civilizations, medieval kingdoms, freedom struggle, and world history.", 
+        topics: [
+            "Ancient Indian Sources & Prehistory", "Indus Valley Civilization", "Vedic Period", 
+            "Buddhism, Jainism & Other Religions", "Mauryan & Gupta Empires", "South Indian Dynasties", 
+            "Delhi Sultanate", "Mughal Empire & Marathas", "Advent of Europeans", 
+            "Revolt of 1857", "Indian National Movement", "Socio-Religious Reforms", 
+            "World History Basics"
+        ], 
+        sym: ["⚔️", "🏛️", "📜", "👑", "⚛️", "🛡️"] 
+    },
+    Geography: { 
+        color: "#059669", bg: "#ecfdf5", 
+        desc: "Solar system, world geography, and the complete physical geography of India.", 
+        topics: [
+            "Universe & Solar System", "Earth's Structure & Lithosphere", "World Geography & Continents", 
+            "Physical Geography of India", "Indian Rivers & Lakes", "Climate & Natural Vegetation", 
+            "Indian Agriculture & Soils", "Minerals & Industries", "Transport & Infrastructure", 
+            "Demographics (Census 2011)"
+        ], 
+        sym: ["🌍", "🏔️", "🌊", "🌿", "🌋", "🌎"] 
+    },
+    "Environment & Ecology": { 
+        color: "#16a34a", bg: "#f0fdf4", 
+        desc: "Ecosystems, biodiversity, climate change, and environmental conservation.", 
+        topics: [
+            "Ecology & Ecosystems", "Biodiversity & Conservation", "Environmental Pollution", 
+            "Climate Change & Greenhouse Effect", "Ozone Layer Depletion"
+        ], 
+        sym: ["🌱", "🐅", "♻️", "🌳", "🌍"] 
+    },
+    Economy: { 
+        color: "#0284c7", bg: "#f0f9ff", 
+        desc: "National income, banking, poverty, and economic planning in India.", 
+        topics: [
+            "Economic Planning & NITI Aayog", "National Income", "Poverty & Unemployment", 
+            "Indian Banking & Finance", "Agriculture & Industries", "Foreign Trade & BOP", 
+            "Important Economic Terminology"
+        ], 
+        sym: ["📊", "💰", "🏦", "📈", "💴"] 
+    },
+    Polity: { 
+        color: "#dc2626", bg: "#fef2f2", 
+        desc: "The Indian Constitution, Parliament, Judiciary, and governance structures.", 
+        topics: [
+            "Constitutional History & Assembly", "Preamble & Territory", "Fundamental Rights & Duties", 
+            "Directive Principles (DPSP)", "Union Executive & Parliament", "State Executive & Legislature", 
+            "Judiciary (Supreme & High Courts)", "Panchayati Raj & Local Govt", 
+            "Constitutional Bodies (EC, UPSC, CAG)", "Important Amendments & Articles"
+        ], 
+        sym: ["⚖️", "🏛️", "📜", "🔐", "🇮🇳"] 
+    },
+    Physics: { 
+        color: "#0ea5e9", bg: "#f0f9ff", 
+        desc: "Mechanics, thermodynamics, optics, electromagnetism, and modern physics.", 
+        topics: [
+            "Units, Measurements & Motion", "Work, Energy & Gravity", "Properties of Matter (Fluids, Viscosity)", 
+            "Heat & Thermodynamics", "Waves & Sound", "Light & Optics", 
+            "Electricity & Magnetism", "Modern & Nuclear Physics", "Scientific Instruments & Discoveries"
+        ], 
+        sym: ["⚡", "🧲", "💡", "🔭", "🍎"] 
+    },
+    Chemistry: { 
+        color: "#f59e0b", bg: "#fffbeb", 
+        desc: "Atomic structure, periodic table, bonding, and organic/inorganic compounds.", 
+        topics: [
+            "Matter & Atomic Structure", "Behavior of Gases", "Periodic Table", 
+            "Chemical Bonding & Reactions", "Acids, Bases & Salts", "Carbon & its Compounds", 
+            "Metals, Non-metals & Alloys", "Man-made Materials & Polymers"
+        ], 
+        sym: ["🧪", "⚗️", "⚛️", "💊", "🔥"] 
+    },
+    Biology: { 
+        color: "#84cc16", bg: "#f7fee7", 
+        desc: "Cell biology, human anatomy, diseases, genetics, and plant physiology.", 
+        topics: [
+            "Classification of Organisms", "Cell Biology", "Human Anatomy & Physiology", 
+            "Nutrition & Vitamins", "Human Diseases", "Genetics & Evolution", 
+            "Botany (Plant Kingdom)"
+        ], 
+        sym: ["🧬", "🔬", "🌿", "🩸", "🦠"] 
+    },
+    "Science & Technology": { 
+        color: "#6366f1", bg: "#e0e7ff", 
+        desc: "Space missions, defense tech, and scientific advancements.", 
+        topics: [
+            "Space Technology & ISRO", "Defense Technology & DRDO", "Nuclear Technology"
+        ], 
+        sym: ["🚀", "🛰️", "📡", "🛡️", "🧬"] 
+    },
+    Computer: { 
+        color: "#4f46e5", bg: "#eef2ff", 
+        desc: "Basics of computers, software, hardware, internet, and networking.", 
+        topics: [
+            "Computer Architecture & History", "Hardware & Software", "Internet & Networking", 
+            "Cyber Security Basics", "Shortcuts & Abbreviations"
+        ], 
+        sym: ["💻", "🖥️", "🌐", "💾", "⌨️"] 
+    },
+    "Art & Culture": { 
+        color: "#db2777", bg: "#fdf2f8", 
+        desc: "Classical dances, music, architecture, festivals, and heritage.", 
+        topics: [
+            "Indian Classical & Folk Dances", "Indian Music & Instruments", "Architecture & Sculptures", 
+            "Festivals & Fairs", "Indian Paintings", "UNESCO World Heritage Sites"
+        ], 
+        sym: ["🎭", "🎨", "🛕", "🪘", "💃", "🏛️"] 
+    },
+    Sports: { 
+        color: "#f97316", bg: "#fff7ed", 
+        desc: "Olympics, tournaments, athletes, and sports terminology.", 
+        topics: [
+            "Olympic & Commonwealth Games", "Asian Games", "Sports Terminology", 
+            "Trophies & Cups", "Famous Athletes & Grounds", "Sports Organizations"
+        ], 
+        sym: ["🏅", "⚽", "🏏", "🎾", "🏆"] 
+    },
+    Miscellaneous: { 
+        color: "#64748b", bg: "#f8fafc", 
+        desc: "First in India/World, organizations, awards, and important dates.", 
+        topics: [
+            "First in India & World", "Superlatives (Longest, Largest, Highest)", "International Organizations (UN, WHO)", 
+            "Important Dates & Days", "Major Awards & Honors", "Famous Books & Authors", 
+            "Defense & Intelligence Agencies"
+        ], 
+        sym: ["🌍", "🏢", "📅", "🥇", "📚"] 
+    }
   };
   
   var subjSec = el("div", { id: "ss", css: { marginBottom: "60px", position: "relative", zIndex: "2" } });
@@ -548,7 +697,7 @@ function pgHome(){
   subjTitle.appendChild(el("div", { 
     css: { 
       fontSize: "2.2rem", fontWeight: "800", letterSpacing: "-0.03em", 
-      fontFamily: "var(--font-display)", color: "var(--text)" // FIXED
+      fontFamily: "var(--font-display)", color: "var(--text)" 
     }, 
     txt: "What's on the agenda?" 
   }));
@@ -575,7 +724,7 @@ function pgHome(){
           cursor: "pointer", transition: "all 0.4s var(--spring-easing)",
           position: "relative", overflow: "hidden"
         },
-        onclick: function() { go("sub", s); }
+        onclick: function() { window.activeTopic = null; go("topiclist", s); }
       });
       
       var ambientGlow = el("div", {
@@ -590,7 +739,7 @@ function pgHome(){
 
       row.addEventListener("mouseenter", function() {
         this.style.transform = "scale(1.02) translateY(-6px)";
-        this.style.background = "var(--glass-border)"; // FIXED
+        this.style.background = "var(--glass-border)";
         this.style.borderColor = d.color + "40"; 
         this.style.boxShadow = "0 24px 48px rgba(0,0,0,0.08), 0 0 0 1px " + d.color + "20";
         ambientGlow.style.opacity = "0.2";
@@ -606,7 +755,7 @@ function pgHome(){
       var ctop = el("div", { css: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", position: "relative", zIndex: "1" } });
       
       ctop.appendChild(el("div", {
-        css: { fontSize: "1.5rem", fontWeight: "700", letterSpacing: "-0.02em", color: "var(--text)", fontFamily: "var(--font-display)" }, // FIXED
+        css: { fontSize: "1.5rem", fontWeight: "700", letterSpacing: "-0.02em", color: "var(--text)", fontFamily: "var(--font-display)" },
         txt: s
       }));
       
@@ -637,7 +786,7 @@ function pgHome(){
       gridWrap.appendChild(row);
     });
   }
-w.appendChild(gridWrap);
+  w.appendChild(gridWrap);
 
   var ft=el("div",{css:{paddingTop:"16px",borderTop:"1.5px solid var(--border)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"8px"}});
   var frl=el("div",{css:{display:"flex",alignItems:"center",gap:"8px"}});
@@ -656,6 +805,7 @@ w.appendChild(gridWrap);
   w.appendChild(ft);
   return w;
 }
+
 // ── INTERACTIVE EMOJI FEEDBACK WIDGET ──
 function createSmartFeedbackWidget() {
     var widgetWrap = el("div", { 

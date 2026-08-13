@@ -53,25 +53,26 @@ function icoRow(name, txt, opts){
 }
 
 function pgSub(){
-  var s=sub,ac=AC[s],qs=QD[s]||[];
-  // RPG SKILL TREE FILTER
-  if (window.activeSkillNode) {
-    var filteredQs = qs.filter(function(q) {
-      return q.topic && q.topic.toLowerCase().trim() === window.activeSkillNode.title.toLowerCase().trim();
+  var s = sub, ac = typeof AC !== 'undefined' ? AC[s] : "#3b82f6", qs = typeof QD !== 'undefined' ? (QD[s] || []) : [];
+  var topic = window.activeTopic;
+  
+  // ── FILTER BY SELECTED TOPIC ──
+  if (topic) {
+    qs = qs.filter(function(q) {
+      return q.topic && q.topic.toLowerCase().trim() === topic.toLowerCase().trim();
     });
-    
-    if (filteredQs.length > 0) {
-      qs = filteredQs; // Overwrite the main question list with just the boss fight questions!
-    } else {
-      toast("No specific questions found for: " + window.activeSkillNode.title, "#ef4444");
-    }
   }
-  var bms=getBookmarks(s); // Get saved bookmarks count
+
+  var bms=getBookmarks(s); 
   var w=el("div",{cls:"fd",css:{maxWidth:"700px",margin:"0 auto"}});
   var nr=el("div",{css:{display:"flex",alignItems:"center",gap:"12px",marginBottom:"32px",paddingBottom:"16px",borderBottom:"1.5px solid var(--border)"}});
-  nr.appendChild(el("button",{cls:"btn btng",css:{padding:"6px 12px",display:"inline-flex",alignItems:"center",gap:"6px"},onclick:function(){go("home");}},[svgIcon("back",{size:15}),el("span",{},"Back")]));
+  
+  // BACK BUTTON GOES TO TOPIC LIST NOW
+  nr.appendChild(el("button",{cls:"btn btng",css:{padding:"6px 12px",display:"inline-flex",alignItems:"center",gap:"6px"},onclick:function(){ go("topiclist", s); }},[svgIcon("back",{size:15}),el("span",{},"Back")]));
+  
   var nb=el("div",{css:{display:"flex",alignItems:"center",gap:"8px"}});
-  nb.appendChild(makeLogo(24));nb.appendChild(el("div",{css:{fontSize:"1rem",fontWeight:"600"},txt:"StudyLab"}));
+  if(typeof makeLogo === 'function') nb.appendChild(makeLogo(24));
+  nb.appendChild(el("div",{css:{fontSize:"1rem",fontWeight:"600"},txt:"StudyLab"}));
   nr.appendChild(nb);w.appendChild(nr);
   
   var c1=el("div",{cls:"mc",onclick:function(){go("fcmenu");}});
@@ -90,7 +91,6 @@ function pgSub(){
   c2.appendChild(el("div",{css:{fontSize:"1rem",fontWeight:"600",marginBottom:"4px"},txt:"Quiz"}));
   c2.appendChild(el("div",{css:{fontSize:".78rem",color:"var(--subtle)"},txt:"Test your knowledge"}));
   
-  // Bookmarks Card
   var c3=el("div",{cls:"mc",onclick:function(){go("bm");}});
   c3.addEventListener("mouseenter",function(){this.style.borderColor="#f59e0b";this.style.background="var(--card2)";});
   c3.addEventListener("mouseleave",function(){this.style.borderColor="var(--border)";this.style.background="var(--card)";});
@@ -100,9 +100,13 @@ function pgSub(){
   c3.appendChild(el("div",{css:{fontSize:".78rem",color:"var(--subtle)"},txt:bms.length+" saved questions"}));
 
   var ctr=el("div",{css:{textAlign:"center",padding:"12px 0 32px"}});
-  ctr.appendChild(el("div",{css:{fontSize:"3.5rem",marginBottom:"12px"},txt:ICON[s]}));
-  ctr.appendChild(el("div",{css:{fontSize:"1.5rem",fontWeight:"700",marginBottom:"6px"},txt:s}));
+  var headerIcon = typeof ICON !== 'undefined' && ICON[s] ? ICON[s] : "📚";
+  ctr.appendChild(el("div",{css:{fontSize:"3.5rem",marginBottom:"12px"},txt:headerIcon}));
+  
+  // SHOW TOPIC TITLE INSTEAD OF SUBJECT
+  ctr.appendChild(el("div",{css:{fontSize:"1.5rem",fontWeight:"800",fontFamily:"var(--font-display)", letterSpacing:"-0.02em", marginBottom:"6px"},txt: topic ? topic : s}));
   ctr.appendChild(el("div",{css:{fontSize:".9rem",color:"var(--muted)",marginBottom:"36px"},txt:qs.length+" questions ready"}));
+  
   var mrow=el("div",{css:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))",gap:"16px",justifyContent:"center"}});
   mrow.appendChild(c1);mrow.appendChild(c2);mrow.appendChild(c3);
   ctr.appendChild(mrow);w.appendChild(ctr);
@@ -193,6 +197,12 @@ function pgFCMenu(){
 
 function pgFC(){
   var s=sub,ac=AC[s],allQ=QD[s]||[];
+  // Apply Active Topic Filter
+  if (window.activeTopic) {
+      allQ = allQ.filter(function(q) {
+          return q.topic && q.topic.toLowerCase().trim() === window.activeTopic.toLowerCase().trim();
+      });
+  }
   var pool=shuf(allQ),idx=0,fl=false,srch="",tab="browse";
   var sv=Sv.get("fc_"+s)||{c:[],k:{}};var custom=sv.c,known=sv.k;
   function persist(){Sv.set("fc_"+s,{c:custom,k:known});}
@@ -317,6 +327,12 @@ function pgFC(){
 
 function pgQZ(){
   var s=sub,ac=AC[s],allQ=QD[s]||[];
+  // Apply Active Topic Filter
+  if (window.activeTopic) {
+      allQ = allQ.filter(function(q) {
+          return q.topic && q.topic.toLowerCase().trim() === window.activeTopic.toLowerCase().trim();
+      });
+  }
   var qst="home",pool=[],qi=0,sc=0,sk=0,ch=null,isSk=false,cnt=25,wrong=[],sRev=false,sHist=false;
   var sv=Sv.get("qz_"+s)||{best:null,att:0,h:[]};var best=sv.best,att=sv.att,hist=sv.h||[];
   function persist(){Sv.set("qz_"+s,{best:best,att:att,h:hist});}
@@ -751,16 +767,27 @@ function pgBookmarks(){
 // ═══════════════════════════════════════════════════════════════════
 function pgSwipeFC() {
   var s = sub, ac = AC[s], allQ = QD[s] || [];
+  // Apply Active Topic Filter
+  if (window.activeTopic) {
+      allQ = allQ.filter(function(q) {
+          return q.topic && q.topic.toLowerCase().trim() === window.activeTopic.toLowerCase().trim();
+      });
+  }
 
   var bgGradients = {
     "History":                  "linear-gradient(135deg, #7c3aed, #4c1d95)",
     "Geography":                "linear-gradient(135deg, #059669, #064e3b)",
-    "Polity":                   "linear-gradient(135deg, #ea580c, #9a3412)",
-    "Economy":                  "linear-gradient(135deg, #db2777, #831843)",
-    "Science":                  "linear-gradient(135deg, #0891b2, #164e63)",
-    "GK":                       "linear-gradient(135deg, #d97706, #78350f)",
-    "Current Affairs":          "linear-gradient(135deg, #2563eb, #1e3a8a)",
-    "Previous Year Questions":  "linear-gradient(135deg, #4f46e5, #312e81)"
+    "Environment & Ecology":    "linear-gradient(135deg, #16a34a, #14532d)",
+    "Economy":                  "linear-gradient(135deg, #0284c7, #075985)",
+    "Polity":                   "linear-gradient(135deg, #dc2626, #7f1d1d)",
+    "Physics":                  "linear-gradient(135deg, #0ea5e9, #0c4a6e)",
+    "Chemistry":                "linear-gradient(135deg, #f59e0b, #78350f)",
+    "Biology":                  "linear-gradient(135deg, #84cc16, #365314)",
+    "Science & Technology":     "linear-gradient(135deg, #6366f1, #312e81)",
+    "Computer":                 "linear-gradient(135deg, #4f46e5, #1e1b4b)",
+    "Art & Culture":            "linear-gradient(135deg, #db2777, #831843)",
+    "Sports":                   "linear-gradient(135deg, #f97316, #7c2d12)",
+    "Miscellaneous":            "linear-gradient(135deg, #64748b, #1e293b)"
   };
   var bg = bgGradients[s] || "linear-gradient(135deg, #4b5563, #1f2937)";
 
@@ -915,4 +942,113 @@ function pgSwipeFC() {
   w.appendChild(endSlide);
 
   return w;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE-TOPICLIST.JS — Structured Syllabus Chapters
+// ═══════════════════════════════════════════════════════════════════
+
+function pgTopicList() {
+    var s = sub; 
+    var d = typeof SD !== 'undefined' ? SD[s] : { color: "#3b82f6", topics: [] };
+    var qs = (typeof QD !== 'undefined' && QD[s]) ? QD[s] : [];
+    
+    var w = el("div", { cls: "fd", css: { maxWidth: "760px", margin: "0 auto", paddingBottom: "60px" } });
+    
+    // Header
+    var hdr = el("div", { css: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", paddingBottom: "16px", borderBottom: "1.5px solid var(--border)" } });
+    hdr.appendChild(el("button", { 
+        cls: "btn btng", css: { padding: "6px 12px", display: "inline-flex", alignItems: "center", gap: "6px" }, 
+        onclick: function() { window.activeTopic = null; go("home"); } 
+    }, [svgIcon("back", {size: 15}), el("span", {}, "Home")]));
+    
+    var hInfo = el("div", { css: { flex: "1" } });
+    var headerIcon = typeof ICON !== 'undefined' && ICON[s] ? ICON[s] : "📚";
+    hInfo.appendChild(el("div", { css: { fontSize: "1.2rem", fontWeight: "800", fontFamily: "var(--font-display)", color: "var(--text)" }, txt: headerIcon + " " + s }));
+    hInfo.appendChild(el("div", { css: { fontSize: ".8rem", color: "var(--subtle)" }, txt: "Select a topic to master" }));
+    hdr.appendChild(hInfo);
+    w.appendChild(hdr);
+    
+    // Topics List Container
+    var listWrap = el("div", { css: { display: "flex", flexDirection: "column", gap: "12px" } });
+    
+    if (d && d.topics && d.topics.length > 0) {
+        d.topics.forEach(function(topicName, idx) {
+            
+            // Count exactly how many questions exist for this specific topic
+            var tq = qs.filter(function(q) {
+                return q.topic && q.topic.toLowerCase().trim() === topicName.toLowerCase().trim();
+            });
+            var count = tq.length;
+            
+            var card = el("div", {
+                css: {
+                    background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "16px",
+                    padding: "20px", display: "flex", alignItems: "center", justifyContent: "space-between",
+                    cursor: "pointer", transition: "all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)", 
+                    backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)"
+                },
+                onclick: function() {
+                    if (count === 0) {
+                        if(typeof toast === 'function') toast("Questions for this topic are being added soon!", "#f59e0b");
+                        else alert("Questions coming soon!");
+                        return;
+                    }
+                    window.activeTopic = topicName;
+                    go("sub", s); // Navigate to the Study Menu (Quiz/Flashcards)
+                }
+            });
+            
+            // Hover Effects
+            card.addEventListener("mouseenter", function() { 
+                if(count > 0) {
+                    this.style.transform = "translateY(-3px)"; 
+                    this.style.borderColor = d.color; 
+                    this.style.background = "var(--card2)";
+                    this.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)";
+                }
+            });
+            card.addEventListener("mouseleave", function() { 
+                this.style.transform = "translateY(0)"; 
+                this.style.borderColor = "var(--glass-border)"; 
+                this.style.background = "var(--glass-bg)";
+                this.style.boxShadow = "none";
+            });
+            
+            var leftSide = el("div", { css: { display: "flex", alignItems: "center", gap: "16px" } });
+            
+            // Topic Number Badge
+            var numberBadge = el("div", {
+                css: {
+                    width: "44px", height: "44px", borderRadius: "12px", background: count > 0 ? d.color + "15" : "var(--bg2)",
+                    border: "1px solid " + (count > 0 ? d.color + "40" : "var(--border)"), display: "flex", 
+                    alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: "800", 
+                    color: count > 0 ? d.color : "var(--subtle)", fontFamily: "var(--font-display)"
+                },
+                txt: (idx + 1)
+            });
+            leftSide.appendChild(numberBadge);
+            
+            var textCol = el("div", { css: { display: "flex", flexDirection: "column" } });
+            textCol.appendChild(el("div", { css: { fontSize: "1.05rem", fontWeight: "700", color: count > 0 ? "var(--text)" : "var(--muted)", marginBottom: "4px", fontFamily: "var(--font-body)", lineHeight: "1.3" }, txt: topicName }));
+            
+            // Status Tag
+            var statusTag = el("div", { css: { fontSize: ".75rem", fontWeight: "600", color: count > 0 ? "var(--subtle)" : "#f59e0b" } });
+            statusTag.textContent = count > 0 ? (count + " Questions") : "Coming Soon ⏳";
+            textCol.appendChild(statusTag);
+            
+            leftSide.appendChild(textCol);
+            card.appendChild(leftSide);
+            
+            var rightSide = el("div", { css: { fontSize: "1.2rem", color: count > 0 ? d.color : "var(--border2)", fontWeight: "800" }, txt: "→" });
+            card.appendChild(rightSide);
+            
+            listWrap.appendChild(card);
+        });
+    } else {
+        listWrap.appendChild(el("div", { css: { padding: "40px", textAlign: "center", color: "var(--muted)" }, txt: "No topics configured for this subject yet." }));
+    }
+    
+    w.appendChild(listWrap);
+    return w;
 }

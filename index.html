@@ -13,7 +13,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="description" content="Practice 4000+ MCQs, get instant AI explanations & master GS topics — all free." />
+<meta name="description" content="Practice MCQs & master GS topics" />
 
 <!-- ═══ PWA SUPPORT ═══ -->
 <meta name="theme-color" content="#05080F" />
@@ -105,15 +105,7 @@
       <div class="nb-brand-sub">Your Ultimate Exam Partner</div>
     </div>
   </div>
-  <div class="nb-links" id="nb-links">
-    <button onclick="go('home')" data-page="home">Home</button>
-    <button onclick="go('govtupdates')" data-page="govtupdates">🔔 Gov Updates</button>
-    <button onclick="go('stats')" data-page="stats">📊 Progress</button>
-    <button onclick="go('digest')" data-page="digest"><span>🗞️</span>Digest</button>
-    <button onclick="go('daily')" data-page="daily">🎯 Daily</button>
-    <button onclick="go('about')" data-page="about">About</button>
-  </div>
-   <div class="nb-right">
+  <div class="nb-right">
     <!-- UNIFIED TOGGLE FUNCTION ATTACHED HERE -->
     <button id="nb-hamburger" onclick="window.toggleDrawer()">
       <span class="line"></span>
@@ -198,31 +190,57 @@
   </div>
 
   <div class="drawer-menu-list">
-    <div class="drawer-section-title">App Settings</div>
+  <div class="drawer-section-title">Learning Modes</div>
 
-    <button onclick="go('stats'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 1;">
-      <div class="drawer-icon-box" style="--box-color: #3b82f6; --box-bg: rgba(59, 130, 246, 0.15);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-      </div>
-      <span>My Progress</span>
-    </button>
+  <button onclick="go('skilltree'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 1;">
+    <div class="drawer-icon-box" style="--box-color: #a78bfa; --box-bg: rgba(124, 58, 237, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M12 8l4 -4"/><path d="M12 14l-4 -4"/><path d="M12 20l4 -4"/></svg>
+    </div>
+    <span>RPG Skill Tree</span>
+  </button>
 
-    <div id="nb-mobile-drawer-divider"></div>
-    <div class="drawer-section-title">Support & Info</div>
+  <button onclick="go('stats'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 2;">
+    <div class="drawer-icon-box" style="--box-color: #3b82f6; --box-bg: rgba(59, 130, 246, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+    </div>
+    <span>My Progress</span>
+  </button>
 
-    <button onclick="openFeedbackModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 2;">
-      <div class="drawer-icon-box" style="--box-color: #f59e0b; --box-bg: rgba(245, 158, 11, 0.15);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      </div>
-      <span>Rate StudyLab</span>
-    </button>
+  <div id="nb-mobile-drawer-divider"></div>
+  <div class="drawer-section-title">Support & Community</div>
 
-    <button onclick="go('about'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 3;">
-      <div class="drawer-icon-box" style="--box-color: #10b981; --box-bg: rgba(16, 185, 129, 0.15);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-      </div>
-      <span>About Us</span>
-    </button>
+  <!-- Email Support -->
+  <button onclick="window.location.href='mailto:jaglanaman71@gmail.com?subject=StudyLab Support Request'; window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 3;">
+    <div class="drawer-icon-box" style="--box-color: #ec4899; --box-bg: rgba(236, 72, 153, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+    </div>
+    <span>Contact Support</span>
+  </button>
+
+  <!-- Telegram Community -->
+  <button onclick="window.open('https://t.me/studylab_app', '_blank'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 4;">
+    <div class="drawer-icon-box" style="--box-color: #0ea5e9; --box-bg: rgba(14, 165, 233, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+    <span>Join Telegram</span>
+  </button>
+
+  <div id="nb-mobile-drawer-divider"></div>
+  <div class="drawer-section-title">App Details</div>
+
+  <button onclick="openFeedbackModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 6;">
+    <div class="drawer-icon-box" style="--box-color: #10b981; --box-bg: rgba(16, 185, 129, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+    </div>
+    <span>Rate StudyLab</span>
+  </button>
+
+  <button onclick="go('about'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 7;">
+    <div class="drawer-icon-box" style="--box-color: #64748b; --box-bg: rgba(100, 116, 139, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+    </div>
+    <span>About Us</span>
+  </button>
   </div>
   
   <div class="drawer-footer-text">StudyLab Premium v2.0</div>
@@ -342,15 +360,20 @@ window.QD = {};
 
 function fetchQuestionsAndStart() {
   const SHEET_SOURCES = [
-    { subject: "History",   url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1694320122&single=true&output=csv" },
-    { subject: "Geography",    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=352095867&single=true&output=csv" },
+    { subject: "History", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1694320122&single=true&output=csv" },
+    { subject: "Geography", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=352095867&single=true&output=csv" },
+    { subject: "Environment & Ecology", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=737631684&single=true&output=csv" },
+    { subject: "Economy", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1502391703&single=true&output=csv" },
     { subject: "Polity", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=93221468&single=true&output=csv" },
-    { subject: "Economy",  url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1502391703&single=true&output=csv" },
-    { subject: "Science",  url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=280426017&single=true&output=csv" },
-    { subject: "GK",  url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=32240774&single=true&output=csv" },
-    { subject: "Current Affairs",  url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=2035024571&single=true&output=csv" },
-    { subject: "Previous Year Questions",  url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=2091749563&single=true&output=csv" }
-  ];
+    { subject: "Physics", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=27457079&single=true&output=csv" },
+    { subject: "Chemistry", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=376223502&single=true&output=csv" },
+    { subject: "Biology", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=943298801&single=true&output=csv" },
+    { subject: "Science & Technology", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=2025884434&single=true&output=csv" },
+    { subject: "Computer", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1848882518&single=true&output=csv" },
+    { subject: "Art & Culture", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1479607629&single=true&output=csv" },
+    { subject: "Sports", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1637380538&single=true&output=csv" },
+    { subject: "Miscellaneous", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1818113994&single=true&output=csv" }
+];
 
   let completedRequests = 0;
   let hasErrors = false;
@@ -367,20 +390,26 @@ function fetchQuestionsAndStart() {
         results.data.forEach(function(row) {
           if (!row["Question"]) return;
           window.QD[subject].push({
-            q: row["Question"],
-            o: [row["Option A"], row["Option B"], row["Option C"], row["Option D"]],
-            a: parseInt(row["Correct Answer"])
+           q: row["Question"],
+           o: [row["Option A"], row["Option B"], row["Option C"], row["Option D"]],
+           a: parseInt(row["Correct Answer"]) - 1,
+           topic: row["Topic"] ? row["Topic"].trim() : "" // <--- ADD THIS LINE
           });
         });
         completedRequests++;
         if (completedRequests === SHEET_SOURCES.length && !hasErrors) {
-          window.totalQuestions = Object.values(window.QD).reduce((sum, subjectArray) => sum + subjectArray.length, 0);
-          initializeApp();
+        window.totalQuestions = Object.values(window.QD).reduce((sum, subjectArray) => sum + subjectArray.length, 0);
+        initializeApp();
         }
       },
       error: function(err) {
+        console.error("Error fetching/parsing sheet for subject:", subject, err);
         hasErrors = true;
-        alert("Failed to load some study material. Please check your connection.");
+        completedRequests++;
+        if (completedRequests === SHEET_SOURCES.length) {
+          alert("Some sheets failed to load. Please check your internet connection or try again later.");
+          initializeApp();
+        }
       }
     });
   });
@@ -515,6 +544,7 @@ if (document.readyState === 'loading') {
 <script src="api.js"></script>
 <script src="page-home.js"></script>
 <script src="page-study.js"></script>
+<script src="page-alltopics.js"></script>
 <script src="page-stats.js"></script>
 <script src="page-daily.js"></script>
 <script src="page-digest.js"></script>

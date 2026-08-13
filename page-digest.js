@@ -34,13 +34,15 @@ function pgDigest() {
         var style = document.createElement('style');
         style.id = 'studylab-digest-styles';
         style.innerHTML = `
-            :root { --bg2: #f8f9fa; --border2: #e9ecef; --font-serif: "Georgia", Cambria, serif; }
-            @media (prefers-color-scheme: dark) { :root { --bg2: #121212; --border2: #2a2a2a; } }
-            .news-feed-stream { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-            .perp-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-            .perp-title { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 700; line-height: 1.4; color: var(--text); margin: 12px 0; }
+            .news-feed-stream { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 10px; }
             .rotate-sync { animation: spinSync 1s linear infinite; }
             @keyframes spinSync { 100% { transform: rotate(360deg); } }
+            
+            .digest-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 16px;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -51,17 +53,20 @@ function pgDigest() {
         return txt.value;
     }
 
+    // Consolidated 9 Categories
     var CATS = [
-        { id: "national", label: "National", icon: "🇮🇳", color: "#4F8EF7", desc: "Top stories from across India." },
-        { id: "govt", label: "Govt / PIB", icon: "🏛️", color: "#8b5cf6", desc: "Official press releases and schemes." },
-        { id: "economy", label: "Economy", icon: "📈", color: "#f59e0b", desc: "RBI, GDP, budget and markets." },
-        { id: "science", label: "Science", icon: "🔬", color: "#4ade80", desc: "ISRO, DRDO and health." },
-        { id: "world", label: "World", icon: "🌐", color: "#f87171", desc: "Foreign relations and global summits." },
-        { id: "sports", label: "Sports", icon: "🏆", color: "#ec4899", desc: "Tournaments, records, and events." },
-        { id: "awards", label: "Awards & Culture", icon: "🎖️", color: "#14b8a6", desc: "Honors, literature, and heritage." }
+      { id: 'national',  label: 'National',      icon: '🇮🇳', color: '#4F8EF7', desc: 'Top stories from across India.' },
+      { id: 'world',     label: 'International', icon: '🌐', color: '#f87171', desc: 'Foreign relations and global events.' },
+      { id: 'polity',    label: 'Polity & Law',  icon: '⚖️', color: '#dc2626', desc: 'Supreme court, bills, and constitution.' },
+      { id: 'economy',   label: 'Economy',       icon: '📈', color: '#f59e0b', desc: 'RBI, GDP, budget and markets.' },
+      { id: 'envgeo',    label: 'Env & Geo',     icon: '🌍', color: '#16a34a', desc: 'Environment, climate, and geography.' },
+      { id: 'heritage',  label: 'Heritage',      icon: '🛕', color: '#7c3aed', desc: 'History, archaeology, and culture.' },
+      { id: 'scitech',   label: 'Sci & Tech',    icon: '🚀', color: '#6366f1', desc: 'ISRO, DRDO, and innovations.' },
+      { id: 'sports',    label: 'Sports',        icon: '🏆', color: '#ec4899', desc: 'Tournaments, records, and medals.' },
+      { id: 'misc',      label: 'Misc & Awards', icon: '🎖️', color: '#14b8a6', desc: 'PIB, defense, and miscellaneous.' }
     ];
 
-    var contentWrap = el("div", { css: { height: "100%" } });
+    var contentWrap = el("div", { css: { height: "100%", position: "relative" } });
 
     function getDailyProgress() {
         var today = new Date().toDateString();
@@ -76,61 +81,124 @@ function pgDigest() {
         localStorage.setItem('sl_digest_stats', JSON.stringify(stats));
     }
 
+    // ─── MAIN CATEGORY VIEW ───
     function showMain() {
         contentWrap.innerHTML = "";
-        var wrap = el("div", { css: { maxWidth: "780px", margin: "0 auto", paddingBottom: "110px", paddingTop: "20px", paddingLeft: "16px", paddingRight: "16px" } });
+        
+        var bgGlow = el("div", {
+          css: {
+            position: "absolute", top: "5%", left: "50%", transform: "translateX(-50%)",
+            width: "400px", height: "400px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)",
+            opacity: "0.08", filter: "blur(70px)", pointerEvents: "none", zIndex: "-1"
+          }
+        });
+        contentWrap.appendChild(bgGlow);
 
-        var hd = el("div", { css: { textAlign: "center", marginBottom: "32px" } });
-        hd.appendChild(el("div", { css: { fontSize: ".65rem", color: "var(--subtle)", textTransform: "uppercase", letterSpacing: ".18em", fontWeight: "700", marginBottom: "10px", fontFamily: "var(--font-display)" }, txt: "StudyLab — Your Ultimate Competitive Exam Partner" }));
-        hd.appendChild(el("div", { css: { fontSize: "1.9rem", fontWeight: "800", letterSpacing: "-.04em", fontFamily: "var(--font-display)", color: "var(--text)" }, txt: "Daily Current Affairs" }));
+        var wrap = el("div", { css: { maxWidth: "900px", margin: "0 auto", paddingBottom: "110px", paddingTop: "20px", paddingLeft: "20px", paddingRight: "20px" } });
+
+        var hd = el("div", { css: { textAlign: "center", marginBottom: "40px" } });
+        var badge = el("div", {
+          css: {
+            display: "inline-flex", alignItems: "center", gap: "8px",
+            padding: "6px 14px", borderRadius: "100px", background: "var(--bg2)",
+            border: "1px solid var(--border)", fontSize: "0.7rem", fontWeight: "700",
+            color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em",
+            marginBottom: "16px"
+          },
+          txt: "Deep Dive Modules"
+        });
+        hd.appendChild(badge);
+        hd.appendChild(el("div", { css: { fontSize: "2.2rem", fontWeight: "800", letterSpacing: "-.04em", fontFamily: "var(--font-display)", color: "var(--text)", lineHeight: "1.1" }, txt: "The Knowledge Digest" }));
 
         var stats = getDailyProgress();
-        var progressWrap = el("div", { css: { display: "inline-flex", alignItems: "center", gap: "10px", marginTop: "16px", padding: "8px 16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" } });
+        var progressWrap = el("div", { css: { display: "inline-flex", alignItems: "center", gap: "10px", marginTop: "20px", padding: "10px 18px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", backdropFilter: "blur(12px)", borderRadius: "100px", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" } });
         progressWrap.appendChild(el("span", { css: { fontSize: "1.2rem" }, txt: "🎯" }));
-        progressWrap.appendChild(el("div", { css: { fontSize: ".85rem", fontWeight: "600", color: "var(--text)" }, txt: "Daily Goal: " + stats.read + " / 5 Articles Read" }));
+        progressWrap.appendChild(el("div", { css: { fontSize: ".85rem", fontWeight: "700", color: "var(--text)" }, txt: "Daily Goal: " + stats.read + " / 5 Articles Read" }));
         hd.appendChild(progressWrap);
         wrap.appendChild(hd);
 
-        CATS.forEach(function (cat) {
-            var row = el("div", { css: { display: "flex", alignItems: "center", gap: "20px", marginBottom: "16px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "16px", padding: "20px", cursor: "pointer" }, onclick: function () { showSub(cat); } });
-            var iconBox = el("div", { css: { fontSize: "3rem" }, txt: cat.icon });
-            var txtBox = el("div", { css: { flex: "1" } });
-            txtBox.appendChild(el("div", { css: { fontSize: "1.3rem", fontWeight: "800", fontFamily: "var(--font-display)", color: "var(--text)", marginBottom: "4px" }, txt: cat.label }));
-            txtBox.appendChild(el("div", { css: { fontSize: ".9rem", color: "var(--muted)" }, txt: cat.desc }));
+        var grid = el("div", { cls: "digest-grid" });
 
-            row.appendChild(iconBox);
-            row.appendChild(txtBox);
-            row.appendChild(el("div", { css: { fontSize: "1.5rem", color: cat.color }, txt: "→" }));
-            wrap.appendChild(row);
+        CATS.forEach(function (cat) {
+            var card = el("div", { 
+                css: { 
+                    display: "flex", alignItems: "center", gap: "16px", background: "var(--card)", 
+                    border: "1px solid var(--border)", borderRadius: "20px", padding: "20px", cursor: "pointer",
+                    transition: "all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)"
+                }, 
+                onclick: function () { showSub(cat); } 
+            });
+            
+            card.addEventListener("mouseenter", function() {
+                this.style.transform = "translateY(-4px)";
+                this.style.borderColor = cat.color;
+                this.style.boxShadow = "0 12px 32px rgba(0,0,0,0.1), inset 0 0 0 1px " + cat.color + "20";
+                this.style.background = "var(--card2)";
+            });
+            card.addEventListener("mouseleave", function() {
+                this.style.transform = "translateY(0)";
+                this.style.borderColor = "var(--border)";
+                this.style.boxShadow = "none";
+                this.style.background = "var(--card)";
+            });
+
+            var iconBox = el("div", { css: { fontSize: "2.2rem", width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center", background: cat.color + "15", borderRadius: "14px", border: "1px solid " + cat.color + "40" }, txt: cat.icon });
+            var txtBox = el("div", { css: { flex: "1" } });
+            txtBox.appendChild(el("div", { css: { fontSize: "1.1rem", fontWeight: "800", fontFamily: "var(--font-display)", color: "var(--text)", marginBottom: "4px" }, txt: cat.label }));
+            txtBox.appendChild(el("div", { css: { fontSize: ".85rem", color: "var(--muted)", lineHeight: "1.4" }, txt: cat.desc }));
+
+            card.appendChild(iconBox);
+            card.appendChild(txtBox);
+            card.appendChild(el("div", { css: { fontSize: "1.2rem", color: cat.color, opacity: "0.6" }, txt: "→" }));
+            grid.appendChild(card);
         });
 
+        wrap.appendChild(grid);
         contentWrap.appendChild(wrap);
         window.scrollTo(0, 0);
     }
 
+    // ─── INDIVIDUAL CATEGORY STREAM VIEW ───
     function showSub(cat) {
         history.pushState({ page: "digest", sub: null, digestView: "main" }, "");
         contentWrap.innerHTML = "";
         window.scrollTo(0, 0);
 
+        var bgGlow = el("div", {
+          css: {
+            position: "absolute", top: "0", left: "50%", transform: "translateX(-50%)",
+            width: "400px", height: "400px", background: "radial-gradient(circle, " + cat.color + " 0%, transparent 60%)",
+            opacity: "0.1", filter: "blur(80px)", pointerEvents: "none", zIndex: "-1"
+          }
+        });
+        contentWrap.appendChild(bgGlow);
+
         var wrap = el("div", { css: { maxWidth: "720px", margin: "0 auto", padding: "20px 16px 110px 16px", display: "flex", flexDirection: "column", boxSizing: "border-box" } });
 
-        var topBar = el("div", { css: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", flexShrink: "0" } });
-        var leftSide = el("div", { css: { display: "flex", alignItems: "center", gap: "12px" } });
-        var backBtn = el("button", { css: { padding: "8px 14px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--bg2)", color: "var(--text)", fontWeight: "600", cursor: "pointer" }, onclick: function () { history.back(); } });
+        var topBar = el("div", { css: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px", flexShrink: "0" } });
+        
+        var leftSide = el("div", { css: { display: "flex", alignItems: "center", gap: "16px" } });
+        var backBtn = el("button", { 
+            css: { width: "44px", height: "44px", borderRadius: "14px", border: "1px solid var(--border)", background: "var(--card2)", color: "var(--text)", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", transition: "all 0.2s" }, 
+            onclick: function () { history.back(); } 
+        });
         backBtn.innerHTML = '←';
+        backBtn.onmouseover = function() { this.style.borderColor = cat.color; this.style.color = cat.color; };
+        backBtn.onmouseout = function() { this.style.borderColor = "var(--border)"; this.style.color = "var(--text)"; };
 
-        var titleNode = el("div", { css: { fontSize: "1.4rem", fontWeight: "800", fontFamily: "var(--font-display)", color: "var(--text)" }, txt: cat.icon + " " + cat.label });
+        var titleCol = el("div", { css: { display: "flex", flexDirection: "column" }});
+        titleCol.appendChild(el("div", { css: { fontSize: "0.7rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.1em", color: cat.color, marginBottom: "2px" }, txt: "Live Stream" }));
+        titleCol.appendChild(el("div", { css: { fontSize: "1.5rem", fontWeight: "800", fontFamily: "var(--font-display)", color: "var(--text)", lineHeight: "1" }, txt: cat.icon + " " + cat.label }));
+        
         leftSide.appendChild(backBtn);
-        leftSide.appendChild(titleNode);
+        leftSide.appendChild(titleCol);
 
         var syncBtn = el("button", { 
-            css: { width: "42px", height: "42px", borderRadius: "50%", border: "1.5px solid var(--border2)", background: "var(--bg2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text)", transition: "all 0.15s ease" },
+            css: { width: "44px", height: "44px", borderRadius: "14px", border: "1.5px solid var(--border)", background: "var(--glass-bg)", backdropFilter: "blur(12px)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text)", transition: "all 0.15s ease", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" },
             onclick: function () { 
                 var btn = this;
                 btn.style.transform = "scale(0.85)"; 
                 setTimeout(function() { btn.style.transform = "scale(1)"; }, 150);
-
                 fetchLatestNews(cat, newsWrap, syncIcon, true); 
             }
         });
@@ -146,10 +214,10 @@ function pgDigest() {
         wrap.appendChild(newsWrap);
         contentWrap.appendChild(wrap);
 
-        // Fetch and load everything continuously automatically
         fetchLatestNews(cat, newsWrap, syncIcon, false);
     }
 
+    // ─── CORE FETCHING ENGINE ───
     function fetchLatestNews(cat, newsWrap, syncIcon, forceRefresh) {
         if (syncIcon) syncIcon.classList.add("rotate-sync");
 
@@ -181,7 +249,7 @@ function pgDigest() {
                     if (!data.items || !data.items.length) return [];
                     
                     var cutoffDate = new Date();
-                    cutoffDate.setDate(cutoffDate.getDate() - 10); // Extends timeline history up to 10 days safely
+                    cutoffDate.setDate(cutoffDate.getDate() - 10); 
 
                     return data.items.map(function(item) {
                         var extractedImg = item.thumbnail || (item.enclosure && item.enclosure.link) || "";
@@ -224,7 +292,7 @@ function pgDigest() {
 
             unique.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
 
-            cachedData.articles = unique.slice(0, 120); // Maximum density cap optimized to 120 items
+            cachedData.articles = unique.slice(0, 120); 
             cachedData.date = todayStr;
 
             if (typeof Sv !== 'undefined' && Sv.set) Sv.set(cacheKey, cachedData);
@@ -235,7 +303,7 @@ function pgDigest() {
         });
     }
 
-    // ─── CONTINUOUS TIMELINE RENDERER (NO FILTERS, AUTOMATED CHRONOLOGY) ───
+    // ─── GLASSMORPHIC TIMELINE RENDERER ───
     function renderDiscoverStream(articles, cat, newsWrap) {
         newsWrap.innerHTML = "";
 
@@ -244,12 +312,23 @@ function pgDigest() {
             return;
         }
 
-        articles.forEach(function (a) {
-            var card = el("div", { className: "perp-card" });
-            var imgContainer = el("div", { css: { width: "100%", height: "210px", position: "relative", borderBottom: "1px solid var(--border2)", backgroundColor: "var(--bg2)", overflow: "hidden" } });
+        articles.forEach(function (a, idx) {
+            var card = el("div", { 
+                css: { 
+                    background: "var(--glass-bg)", border: "1px solid var(--glass-border)", 
+                    borderRadius: "20px", overflow: "hidden", marginBottom: "24px", 
+                    boxShadow: "0 12px 32px rgba(0,0,0,0.15)",
+                    borderTop: "3px solid " + cat.color,
+                    backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+                    animation: "slide-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both",
+                    animationDelay: (idx * 0.05) + "s"
+                } 
+            });
+
+            var imgContainer = el("div", { css: { width: "100%", height: "220px", position: "relative", borderBottom: "1px solid var(--border)", backgroundColor: "var(--bg2)", overflow: "hidden" } });
 
             if (a.image && a.image.trim() !== "") {
-                var sharpLayer = el("div", { css: { position: "absolute", top: "0", left: "0", width: "100%", height: "100%", backgroundImage: "url('" + a.image + "')", backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center" } });
+                var sharpLayer = el("div", { css: { position: "absolute", top: "0", left: "0", width: "100%", height: "100%", backgroundImage: "url('" + a.image + "')", backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center" } });
                 imgContainer.appendChild(sharpLayer);
             } else {
                 imgContainer.style.backgroundImage = "linear-gradient(" + cat.color + "1A 1px, transparent 1px), linear-gradient(90deg, " + cat.color + "1A 1px, transparent 1px)";
@@ -257,16 +336,17 @@ function pgDigest() {
                 imgContainer.style.backgroundPosition = "center center";
 
                 var fallbackBadge = el("div", { 
-                    css: { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "75px", height: "75px", borderRadius: "14px", backgroundColor: "var(--card)", border: "2px solid " + cat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }, 
+                    css: { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "80px", height: "80px", borderRadius: "20px", backgroundColor: "var(--card)", border: "2px solid " + cat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.8rem", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }, 
                     txt: cat.icon 
                 });
                 imgContainer.appendChild(fallbackBadge);
             }
             card.appendChild(imgContainer);
 
-            var textBlock = el("div", { css: { padding: "20px" } });
-            var metaRow = el("div", { css: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.72rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" } });
-            metaRow.appendChild(el("span", { css: { color: cat.color }, txt: a.source }));
+            var textBlock = el("div", { css: { padding: "24px" } });
+            
+            var metaRow = el("div", { css: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" } });
+            metaRow.appendChild(el("span", { css: { color: cat.color, background: cat.color + "15", padding: "4px 10px", borderRadius: "6px", border: "1px solid " + cat.color + "30" }, txt: a.source }));
 
             var parsedTime = new Date(a.pubDate);
             var dateOption = { month: "short", day: "numeric" };
@@ -276,39 +356,40 @@ function pgDigest() {
             metaRow.appendChild(el("span", { css: { color: "var(--subtle)" }, txt: timeStr }));
             textBlock.appendChild(metaRow);
 
-            var titleEl = el("div", { className: "perp-title", txt: a.title });
+            var titleEl = el("div", { css: { fontSize: "1.3rem", fontWeight: "700", lineHeight: "1.4", color: "var(--text)", fontFamily: "var(--font-body)", marginBottom: "12px" }, txt: a.title });
             textBlock.appendChild(titleEl);
 
             var summaryTxt = (a.description || "").replace(/<\/?[^>]+(>|$)/g, "").trim();
-            if (!summaryTxt) summaryTxt = "Tap below to open the complete reference brief and view historical government announcements updates.";
+            if (!summaryTxt) summaryTxt = "Tap below to open the complete reference brief and view historical announcements.";
             if (summaryTxt.length > 160) summaryTxt = summaryTxt.substring(0, 155) + "...";
 
-            var descEl = el("p", { css: { fontSize: "0.9rem", color: "var(--muted)", lineHeight: "1.55", margin: "10px 0 20px 0" }, txt: summaryTxt });
+            var descEl = el("p", { css: { fontSize: "0.95rem", color: "var(--muted)", lineHeight: "1.6", margin: "0 0 24px 0" }, txt: summaryTxt });
             textBlock.appendChild(descEl);
 
-            var bottomRow = el("div", { css: { display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border2)", paddingTop: "14px", marginTop: "10px" } });
-            var profileBox = el("div", { css: { display: "flex", alignItems: "center", gap: "8px" } });
-
+            var bottomRow = el("div", { css: { display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border)", paddingTop: "16px" } });
+            
+            var profileBox = el("div", { css: { display: "flex", alignItems: "center", gap: "10px" } });
             var slBadge = el("div", { 
-                css: { width: "26px", height: "26px", borderRadius: "7px", backgroundColor: "#0a0a0a", color: "#ffffff", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "900", fontFamily: "var(--font-display, sans-serif)" }, 
+                css: { width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "var(--card)", color: "var(--text)", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontFamily: "var(--font-display)", border: "1px solid var(--border)" }, 
                 txt: "SL" 
             });
-
-            var brandText = el("div", { css: { fontSize: "0.85rem", fontWeight: "800", fontFamily: "var(--font-display, sans-serif)", letterSpacing: "-0.02em" } });
-            brandText.innerHTML = '<span style="color: var(--text);">Study</span><span style="color: #3b82f6;">Lab</span>';
-
+            var brandText = el("div", { css: { fontSize: "0.9rem", fontWeight: "800", fontFamily: "var(--font-display)", letterSpacing: "-0.02em" } });
+            brandText.innerHTML = '<span style="color: var(--text);">Study</span><span style="color: ' + cat.color + ';">Lab</span>';
             profileBox.appendChild(slBadge);
             profileBox.appendChild(brandText);
             bottomRow.appendChild(profileBox);
 
             var readBtn = el("button", { 
-                css: { padding: "8px 14px", background: "none", border: "1px solid " + cat.color, color: cat.color, borderRadius: "8px", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer" }, 
+                css: { padding: "10px 18px", background: cat.color, color: "#fff", border: "none", borderRadius: "10px", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", boxShadow: "0 4px 12px " + cat.color + "60", transition: "transform 0.2s" }, 
                 txt: "Read Full Brief",
                 onclick: function() { 
                     updateDailyProgress(); 
                     if (a.url) window.open(a.url, "_blank"); 
                 } 
             });
+            readBtn.onmouseover = function() { this.style.transform = "translateY(-2px)"; };
+            readBtn.onmouseout = function() { this.style.transform = "translateY(0)"; };
+
             bottomRow.appendChild(readBtn);
 
             textBlock.appendChild(bottomRow);

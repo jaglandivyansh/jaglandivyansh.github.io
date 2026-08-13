@@ -93,114 +93,88 @@ function openSarvamAIModal(questionText, optionsArr, correctIndex, subject) {
   });
 }
 
-
-
 // ========================================
 // LIVE DAILY CURRENT AFFAIRS — RSS SYSTEM
 // ========================================
 
 const CA_TABS = [
-  { id: 'national',  label: '🇮🇳 National',  color: '#4F8EF7' },
-  { id: 'world',     label: '🌐 World',       color: '#f87171' },
-  { id: 'govt',      label: '🏛 Govt / PIB',  color: '#8b5cf6' },
-  { id: 'economy',   label: '📈 Economy',     color: '#f59e0b' },
-  { id: 'science',   label: '🔬 Science',     color: '#4ade80' },
-  { id: 'sports',    label: '🏆 Sports',      color: '#ec4899' },
-  { id: 'awards',    label: '🎖️ Awards',      color: '#14b8a6' }
+  { id: 'national',  label: '🇮🇳 National',       color: '#4F8EF7' },
+  { id: 'world',     label: '🌐 International',  color: '#f87171' },
+  { id: 'polity',    label: '⚖️ Polity & Law',   color: '#dc2626' },
+  { id: 'economy',   label: '📈 Economy',        color: '#f59e0b' },
+  { id: 'envgeo',    label: '🌍 Env & Geo',      color: '#16a34a' },
+  { id: 'heritage',  label: '🛕 Heritage',       color: '#7c3aed' },
+  { id: 'scitech',   label: '🚀 Sci & Tech',     color: '#6366f1' },
+  { id: 'sports',    label: '🏆 Sports',         color: '#ec4899' },
+  { id: 'misc',      label: '🎖️ Misc & Awards',  color: '#14b8a6' }
 ];
-
-// ── GLOBAL ERROR HANDLER ──
-window.addEventListener('error', function(e) {
-  console.error('StudyLab Error:', e.error);
-});
-
-window.addEventListener('unhandledrejection', function(e) {
-  console.error('Unhandled Promise:', e.reason);
-  e.preventDefault();
-});
 
 // rss2json base — free, no key, works directly from browser sandbox
 const R2J = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
-// High-Volume Balanced Matrix: 10 Core National and Global Outlets Distributed Across Categories
+// Consolidated High-Volume Feeds 
+// Consolidated High-Volume Balanced Matrix: Sourced from Top Dailies, Google News, and Global Outlets
 const CA_FEEDS = {
   national: [
-    { url: R2J + encodeURIComponent('https://feeds.feedburner.com/ndtvnews-india-news'),          name: 'NDTV India' },
-    { url: R2J + encodeURIComponent('https://timesofindia.indiatimes.com/rssfeeds/2083611.cms'),  name: 'Times of India' },
     { url: R2J + encodeURIComponent('https://www.thehindu.com/news/national/feeder/default.rss'), name: 'The Hindu' },
-    { url: R2J + encodeURIComponent('https://indianexpress.com/section/india/feed/'),             name: 'Indian Express' }
+    { url: R2J + encodeURIComponent('https://indianexpress.com/section/india/feed/'),             name: 'Indian Express' },
+    { url: R2J + encodeURIComponent('https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml'), name: 'Hindustan Times' },
+    { url: R2J + encodeURIComponent('https://www.news18.com/rss/india.xml'),                      name: 'News18' }
   ],
   world: [
-    { url: R2J + encodeURIComponent('https://feeds.bbci.co.uk/news/world/rss.xml'),               name: 'BBC World News' },
-    { url: R2J + encodeURIComponent('https://www.reutersagency.com/feed/?best-types=top-news'),   name: 'Reuters Global' },
-    { url: R2J + encodeURIComponent('https://www.theguardian.com/world/rss'),                     name: 'The Guardian' }
+    { url: R2J + encodeURIComponent('https://www.thehindu.com/news/international/feeder/default.rss'), name: 'The Hindu World' },
+    { url: R2J + encodeURIComponent('https://feeds.bbci.co.uk/news/world/rss.xml'),               name: 'BBC World' },
+    { url: R2J + encodeURIComponent('https://www.aljazeera.com/xml/rss/all.xml'),                 name: 'Al Jazeera' }
   ],
-  govt: [
-    { url: R2J + encodeURIComponent('https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3'),   name: 'PIB India' },
-    { url: R2J + encodeURIComponent('https://www.thehindu.com/news/national/feeder/default.rss'), name: 'The Hindu Govt' },
-    { url: R2J + encodeURIComponent('https://feeds.feedburner.com/ndtvnews-india-news'),          name: 'NDTV National' }
+  polity: [
+    { url: R2J + encodeURIComponent('https://news.google.com/rss/search?q=Supreme+Court+Constitution+Polity+India&hl=en-IN&gl=IN&ceid=IN:en'), name: 'Polity Intel' }
   ],
   economy: [
     { url: R2J + encodeURIComponent('https://economictimes.indiatimes.com/rssfeedsdefault.cms'),  name: 'Economic Times' },
     { url: R2J + encodeURIComponent('https://www.livemint.com/rss/economy'),                      name: 'Mint Economy' },
-    { url: R2J + encodeURIComponent('https://www.business-standard.com/rss/economy-policy-102.rss'), name: 'Business Standard' }
+    { url: R2J + encodeURIComponent('https://www.financialexpress.com/feed/'),                    name: 'Financial Express' }
   ],
-  science: [
+  envgeo: [
+    { url: R2J + encodeURIComponent('https://news.google.com/rss/search?q=Environment+Ecology+Geography+Monsoon+India&hl=en-IN&gl=IN&ceid=IN:en'), name: 'Eco/Geo News' },
+    { url: R2J + encodeURIComponent('https://www.thehindu.com/sci-tech/energy-and-environment/feeder/default.rss'), name: 'The Hindu Eco' }
+  ],
+  heritage: [
+    { url: R2J + encodeURIComponent('https://news.google.com/rss/search?q=Archaeology+History+Heritage+Culture+India&hl=en-IN&gl=IN&ceid=IN:en'), name: 'Heritage Intel' },
+    { url: R2J + encodeURIComponent('https://www.thehindu.com/entertainment/art/feeder/default.rss'), name: 'The Hindu Culture' }
+  ],
+  scitech: [
     { url: R2J + encodeURIComponent('https://www.thehindu.com/sci-tech/feeder/default.rss'),      name: 'The Hindu Sci-Tech' },
-    { url: R2J + encodeURIComponent('https://feeds.feedburner.com/ndtvnews-science'),             name: 'NDTV Science' },
-    { url: R2J + encodeURIComponent('https://timesofindia.indiatimes.com/rssfeeds/2886704.cms'),  name: 'TOI Science' }
+    { url: R2J + encodeURIComponent('https://news.google.com/rss/search?q=ISRO+Space+Technology+AI+India&hl=en-IN&gl=IN&ceid=IN:en'), name: 'Tech Intel' }
   ],
   sports: [
     { url: R2J + encodeURIComponent('https://www.thehindu.com/sport/feeder/default.rss'),         name: 'The Hindu Sports' },
-    { url: R2J + encodeURIComponent('https://indianexpress.com/section/sports/feed/'),            name: 'Indian Express Sports' }
+    { url: R2J + encodeURIComponent('https://www.hindustantimes.com/feeds/rss/sports/rssfeed.xml'), name: 'HT Sports' }
   ],
-  awards: [
-    { url: R2J + encodeURIComponent('https://www.thehindu.com/entertainment/art/feeder/default.rss'), name: 'The Hindu Culture' },
-    { url: R2J + encodeURIComponent('https://indianexpress.com/section/lifestyle/art-and-culture/feed/'), name: 'IE Art & Culture' }
+  misc: [
+    { url: R2J + encodeURIComponent('https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3'),    name: 'PIB India' },
+    { url: R2J + encodeURIComponent('https://news.google.com/rss/search?q=Indian+Defense+Military+Awards&hl=en-IN&gl=IN&ceid=IN:en'), name: 'Defense & Awards' }
   ]
 };
 
 const CA_FALLBACK = {
-  national: [
-    { title: "India's GDP growth forecast revised upward by IMF for FY2025", source: "Economic Times", url: "https://economictimes.indiatimes.com", pubDate: "" },
-    { title: "Union Cabinet approves major infrastructure projects under PM Gati Shakti", source: "PIB India", url: "https://pib.gov.in", pubDate: "" },
-    { title: "Supreme Court delivers landmark verdict on electoral bonds scheme", source: "The Hindu", url: "https://www.thehindu.com", pubDate: "" }
-  ],
-  world: [
-    { title: "Global strategic partnership strengthened at international summit assembly", source: "Reuters", url: "https://reuters.com", pubDate: "" },
-    { title: "UN General Assembly adopts multilateral connectivity cooperation resolution", source: "BBC World", url: "https://bbc.com", pubDate: "" }
-  ],
-  govt: [
-    { title: "Cabinet approves PM Vishwakarma scheme for traditional artisans", source: "PIB India", url: "https://pib.gov.in", pubDate: "" },
-    { title: "Government launches Digital India initiative phase-3 updates", source: "PIB India", url: "https://pib.gov.in", pubDate: "" }
-  ],
-  economy: [
-    { title: "RBI holds repo rate steady; focuses on inflation management metrics", source: "Mint", url: "https://www.livemint.com", pubDate: "" },
-    { title: "India ranks among top positions in Global Innovation Index reporting", source: "Business Standard", url: "https://www.business-standard.com", pubDate: "" }
-  ],
-  science: [
-    { title: "Space agency successfully tests next-generation satellite launcher rocket", source: "The Hindu", url: "https://www.thehindu.com", pubDate: "" },
-    { title: "National quantum computing mission infrastructure updates released", source: "NDTV Science", url: "https://www.ndtv.com", pubDate: "" }
-  ],
-  sports: [
-    { title: "National athletics team completes historic gold medal competitive run", source: "The Hindu Sports", url: "https://www.thehindu.com", pubDate: "" },
-    { title: "Cricket control board announces updated operational schedules", source: "Indian Express", url: "https://indianexpress.com", pubDate: "" }
-  ],
-  awards: [
-    { title: "Sahitya Akademi Awards announced across multiple regional languages", source: "The Hindu Culture", url: "https://www.thehindu.com", pubDate: "" },
-    { title: "National heritage protection metrics upgraded by cultural committee", source: "Ministry of Culture", url: "https://pib.gov.in", pubDate: "" }
-  ]
+  national: [{ title: "India's GDP growth forecast revised upward", source: "Economic Times", url: "#", pubDate: "" }],
+  world: [{ title: "Global strategic partnership strengthened at UN", source: "Reuters", url: "#", pubDate: "" }],
+  polity: [{ title: "Supreme Court delivers landmark verdict on fundamental rights", source: "The Hindu", url: "#", pubDate: "" }],
+  economy: [{ title: "RBI holds repo rate steady; focuses on inflation", source: "Mint", url: "#", pubDate: "" }],
+  envgeo: [{ title: "Meteorological Dept issues updated monsoon & climate forecast", source: "Geo Intel", url: "#", pubDate: "" }],
+  heritage: [{ title: "Ancient artifacts discovered in recent ASI excavation", source: "Heritage Intel", url: "#", pubDate: "" }],
+  scitech: [{ title: "ISRO successfully tests next-generation satellite launcher", source: "The Hindu", url: "#", pubDate: "" }],
+  sports: [{ title: "National athletics team completes historic gold medal run", source: "Sports Daily", url: "#", pubDate: "" }],
+  misc: [{ title: "Ministry of Defence introduces new procurement policy", source: "PIB India", url: "#", pubDate: "" }]
 };
 
 var caActiveTab = 'national';
 var caCache = {}; 
 
-// ─── STABLE INDIVIDUAL FEED CONVERTER (Soft-Fails Gracefully) ───
 async function fetchRSSFeed(feedObj) {
   try {
     const res = await Promise.race([
       fetch(feedObj.url),
-      // Prevent browser hangs by dropping requests that take more than 5 seconds
       new Promise(function(_, rej) { setTimeout(function() { rej(new Error('Timeout')); }, 5000); })
     ]);
     if (!res.ok) return [];
@@ -217,8 +191,7 @@ async function fetchRSSFeed(feedObj) {
       };
     }).filter(function(a) { return a.title.length > 10; });
   } catch (e) {
-    console.warn("Feed stream bypassed: " + feedObj.name);
-    return []; // Return empty array on failure so Promise.all Settled doesn't stall
+    return []; 
   }
 }
 
@@ -266,9 +239,12 @@ function renderCurrentAffairs(articles, isLive, tabId) {
       <h2>Daily <span>Current Affairs</span></h2>
       <div class="news-live-badge">${isLive ? '<span class="ca-live-dot"></span>AGGREGATED LIVE' : '📰 OFFLINE BACKUP'}</div>
     </div>
-    <div class="ca-tabs-wrap">${tabsHTML}</div>
+    <div class="ca-tabs-wrap" style="overflow-x: auto; white-space: nowrap; scrollbar-width: none;">${tabsHTML}</div>
     <div class="news-scroller ca-scroller">${cardsHTML || '<div class="ca-empty">No articles found. Try another tab.</div>'}</div>
   `;
+
+  var tabsWrap = container.querySelector('.ca-tabs-wrap');
+  if(tabsWrap) tabsWrap.style.cssText += '::-webkit-scrollbar { display: none; }';
 
   if (typeof triggerReveal === "function") {
     setTimeout(function(){ triggerReveal(container); }, 10);
@@ -286,6 +262,9 @@ async function switchCATab(tabId) {
     else b.style.removeProperty('--ca-color');
   });
 
+  const activeBtn = document.querySelector('.ca-tab-active');
+  if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
   if (caCache[tabId]) {
     renderCurrentAffairs(caCache[tabId].articles, caCache[tabId].isLive, tabId);
     return;
@@ -296,18 +275,15 @@ async function switchCATab(tabId) {
   await loadCATab(tabId);
 }
 
-// ─── CONCURRENT AGGREGATION ENGINE (Fixes single-feed limitations) ───
 async function loadCATab(tabId) {
   const feeds = CA_FEEDS[tabId] || [];
   
-  // 1. Fetch all mapped media channels simultaneously in parallel streams
   const fetchPromises = feeds.map(function(feed) { return fetchRSSFeed(feed); });
   const results = await Promise.allSettled(fetchPromises);
   
   let aggregatedArticles = [];
   let isLive = false;
 
-  // 2. Safely stitch together active outputs
   results.forEach(function(result) {
     if (result.status === 'fulfilled' && result.value.length > 0) {
       aggregatedArticles = aggregatedArticles.concat(result.value);
@@ -315,7 +291,6 @@ async function loadCATab(tabId) {
     }
   });
 
-  // 3. Smart De-duplication: Drops overlap if different channels post identical text strings
   const seenTitles = new Set();
   let uniqueArticles = aggregatedArticles.filter(function(article) {
     var cleanTitle = article.title.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -324,8 +299,7 @@ async function loadCATab(tabId) {
     return true;
   });
 
-  // 4. Fallback Hybrid Integration: If streaming links fall short, overlay historical objects smoothly
-  if (uniqueArticles.length < 5) {
+  if (uniqueArticles.length < 3) {
     const fallbacks = CA_FALLBACK[tabId] || [];
     fallbacks.forEach(function(f) {
       var cleanFBTitle = f.title.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -334,14 +308,13 @@ async function loadCATab(tabId) {
           title: f.title,
           source: f.source + " Archive",
           url: f.url,
-          pubDate: f.pubDate ? new Date(f.pubDate).getTime() : Date.now() - 86400000 // Stamp as yesterday by default
+          pubDate: f.pubDate ? new Date(f.pubDate).getTime() : Date.now() - 86400000 
         });
         seenTitles.add(cleanFBTitle);
       }
     });
   }
 
-  // 5. Absolute Chronological Ordering (Pushes fresh breaking news up, maps yesterday below it)
   uniqueArticles.sort(function(a, b) { return b.pubDate - a.pubDate; });
 
   caCache[tabId] = { articles: uniqueArticles, isLive: isLive };
@@ -365,362 +338,9 @@ async function loadCurrentAffairs() {
   
   caCache = {};
   await loadCATab(caActiveTab);
-  
-  // Pre-fetch remaining sections sequentially in the background (Non-blocking)
-  CA_TABS.filter(function(t) { return t.id !== caActiveTab; }).forEach(function(t) {
-    loadCATab(t.id);
-  });
 }
 
-// ═══════════════════════════════════════════
-//   GOVT UPDATES PAGE — RSS SYSTEM (v2 — redesigned)
-// ═══════════════════════════════════════════
 
-var GU_TYPES = {
-  vacancy:   { label:"New Vacancy",   icon:"📋", color:"#4F8EF7" },
-  admitcard: { label:"Admit Card",    icon:"🪪", color:"#8b5cf6" },
-  examdate:  { label:"Exam Schedule", icon:"📅", color:"#f59e0b" },
-  result:    { label:"Result",        icon:"🏆", color:"#4ade80" }
-};
-
-// ── RSS feeds via multiple proxy services (tries each until one works)
-var GU_RAW_FEEDS = [
-  { raw: 'https://www.freejobalert.com/feed/',                          name:'FreeJobAlert' },
-  { raw: 'https://www.indgovtjobs.in/feeds/posts/default?alt=rss',      name:'IndGovtJobs' }, // Highly reliable, no Cloudflare
-  { raw: 'https://quicksarkari.com/feed/',                              name:'Sarkari Naukri' },
-  { raw: 'https://www.rojgarresult.com/feed/',                          name:'Rojgar Result' },
-  { raw: 'https://www.freshersworld.com/feeds/jobsalert.xml',           name:'FreshersWorld' },
-  { raw: 'https://employmentnews.gov.in/NewMain/EmploymentNewsRss.aspx', name:'Employment News' },
-  { raw: 'https://www.freshersworld.com/feeds/jobsalert.xml',           name:'FreshersWorld' },
-  { raw: 'https://haryanajobs.in/feed/',                                name:'Haryana Jobs' }
-];
-var GU_OFFICIAL_LINKS = {
-  // ── CENTRAL & NATIONAL BOARDS ──
-  'UPSC': 'https://upsc.gov.in',
-  'SSC': 'https://ssc.gov.in', // SSC migrated to ssc.gov.in
-  'RRB': 'https://indianrailways.gov.in',
-  'IBPS': 'https://ibps.in',
-  'NTA': 'https://nta.ac.in',
-  'DRDO': 'https://drdo.gov.in',
-  'ISRO': 'https://www.isro.gov.in/Careers.html',
-  'AIIMS': 'https://www.aiims.edu',
-  
-  // ── BANKING & FINANCE ──
-  'SBI': 'https://sbi.co.in/web/careers',
-  'RBI': 'https://opportunities.rbi.org.in',
-  'NABARD': 'https://nabard.org',
-  'LIC': 'https://licindia.in/Bottom-Links/careers',
-  'EPFO': 'https://www.epfindia.gov.in',
-  'ESIC': 'https://www.esic.gov.in/recruitments',
-  
-  // ── DEFENCE & FORCES ──
-  'ARMY': 'https://joinindianarmy.nic.in',
-  'NAVY': 'https://www.joinindiannavy.gov.in',
-  'AIR FORCE': 'https://afcat.cdac.in',
-  'COAST GUARD': 'https://joinindiancoastguard.cdac.in',
-  'BSF': 'https://rectt.bsf.gov.in',
-  'CRPF': 'https://rect.crpf.gov.in',
-  'CISF': 'https://cisfrectt.cisf.gov.in',
-  'ITBP': 'https://recruitment.itbpolice.nic.in',
-
-  // ── PSUs (Public Sector Undertakings) ──
-  'ONGC': 'https://ongcindia.com',
-  'NTPC': 'https://careers.ntpc.co.in',
-  'BHEL': 'https://careers.bhel.in',
-  'HAL': 'https://hal-india.co.in/Career',
-  'SAIL': 'https://sailcareers.com',
-  'FCI': 'https://fci.gov.in/personnel.php',
-  'AAI': 'https://www.aai.aero/en/careers/recruitment',
-
-  // ── STATE PUBLIC SERVICE COMMISSIONS (PSCs) ──
-  'APPSC': 'https://psc.ap.gov.in',            // Andhra Pradesh
-  'APSC': 'https://apsc.nic.in',               // Assam
-  'BPSC': 'https://bpsc.bih.nic.in',           // Bihar
-  'CGPSC': 'https://psc.cg.gov.in',            // Chhattisgarh
-  'GPSC': 'https://gpsc.gujarat.gov.in',       // Gujarat
-  'HPSC': 'https://hpsc.gov.in',               // Haryana
-  'HPPSC': 'https://hppsc.hp.gov.in',          // Himachal Pradesh
-  'JKPSC': 'https://jkpsc.nic.in',             // Jammu & Kashmir
-  'JPSC': 'https://jpsc.gov.in',               // Jharkhand
-  'KPSC': 'https://kpsc.kar.nic.in',           // Karnataka
-  'KERALA PSC': 'https://www.keralapsc.gov.in',// Kerala
-  'MPPSC': 'https://mppsc.mp.gov.in',          // Madhya Pradesh
-  'MPSC': 'https://mpsc.gov.in',               // Maharashtra
-  'MPSC MANIPUR': 'https://mpscmanipur.gov.in',// Manipur
-  'MPSC MEGHALAYA': 'https://mpsc.nic.in',     // Meghalaya
-  'OPSC': 'https://opsc.gov.in',               // Odisha
-  'PPSC': 'https://ppsc.gov.in',               // Punjab
-  'RPSC': 'https://rpsc.rajasthan.gov.in',     // Rajasthan
-  'SPSC': 'https://spsc.sikkim.gov.in',        // Sikkim
-  'TNPSC': 'https://tnpsc.gov.in',             // Tamil Nadu
-  'TGPSC': 'https://tgpsc.gov.in',             // Telangana (Recently renamed from TSPSC)
-  'TSPSC': 'https://tgpsc.gov.in',             // Fallback for older Telangana notices
-  'TPSC': 'https://tpsc.tripura.gov.in',       // Tripura
-  'UPPSC': 'https://uppsc.up.nic.in',          // Uttar Pradesh
-  'UKPSC': 'https://psc.uk.gov.in',            // Uttarakhand
-  'WBPSC': 'https://psc.wb.gov.in'             // West Bengal
-};
-
-// Build feed URLs with multiple proxy strategies
-function guBuildFeedUrls(raw, name) {
-  var enc = encodeURIComponent(raw);
-  return [
-    // Your own serverless proxy — tried first, no CORS issues, no rate limits
-    { url: '/api/rss-proxy?url=' + enc, type: 'own', name: name },
-    // Fallbacks if your proxy fails for any reason
-    { url: 'https://api.rss2json.com/v1/api.json?rss_url=' + enc + '&count=120', type: 'r2j', name: name },
-    { url: 'https://api.codetabs.com/v1/proxy?quest=' + enc, type: 'xml', name: name },
-    { url: 'https://api.allorigins.win/get?url=' + enc, type: 'allorigins', name: name },
-    { url: 'https://corsproxy.io/?' + enc, type: 'xml', name: name },
-    { url: 'https://thingproxy.freeboard.io/fetch/' + raw, type: 'xml', name: name }
-  ];
-}
-
-var GU_RSS_FEEDS = GU_RAW_FEEDS.map(function(f){ return guBuildFeedUrls(f.raw, f.name)[0]; });
-
-// Keyword-based auto type classifier
-function guClassify(title) {
-  var t = (title||'').toLowerCase();
-  if (/admit card|hall ticket|call letter/.test(t))              return 'admitcard';
-  if (/result|merit list|final list|selected|cut.?off/.test(t))  return 'result';
-  if (/exam date|schedule|timetable|postponed|date sheet/.test(t)) return 'examdate';
-  return 'vacancy';
-}
-
-function guExtractOrg(title) {
-  var orgs = [
-    'UPSC','SSC','RRB','IBPS','NTA','DRDO','SBI','RBI','NABARD','TNPSC',
-    'UPPSC','MPSC','BPSC','RPSC','HPSC','UKPSC','JPSC','OPSC','KPSC','GPSC',
-    'APPSC','APSC','CGPSC','HPPSC','JKPSC','PPSC','SPSC','TGPSC','TSPSC',
-    'TPSC','WBPSC','KERALA PSC', 'ISRO','HAL','BHEL','ONGC','NTPC','NHM',
-    'AIIMS','ESIC','LIC','GIC','EPFO','FCI','AAI','SAIL',
-    'ARMY','NAVY','AIR FORCE','COAST GUARD','BSF','CRPF','CISF','ITBP',
-    'Police','Railway','High Court','Supreme Court'
-  ];
-  for (var i=0; i<orgs.length; i++) {
-    if ((title||'').toUpperCase().indexOf(orgs[i].toUpperCase()) !== -1) return orgs[i];
-  }
-  return '';
-}
-
-function guExtractLastDate(text) {
-  var match = (text||'').match(/(?:last date|apply till|deadline|closing date)[\s\:-]*(\d{1,2}[\/\-\s](?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|[a-z]+)[\/\-\s]?\d{2,4}|\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
-  if(match && match[1]) return match[1].trim();
-  return null;
-}
-
-// Fallback data shown when all RSS feeds fail
-var GU_FALLBACK = [
-  { id:'f1', type:'vacancy',   title:'UPSC Civil Services 2025 – Notification Released (1078 Posts)', org:'UPSC', date:'2025-02-15', lastDate:'2025-03-10', link:'https://upsc.gov.in', tags:['UPSC','IAS'] },
-  { id:'f2', type:'examdate',  title:'SSC CGL Tier-I 2025 Exam Dates Announced (Apr 14–27)', org:'SSC', date:'2025-02-20', examDate:'Apr 14–27, 2025', link:'https://ssc.nic.in', tags:['SSC','CGL'] },
-  { id:'f3', type:'admitcard', title:'Railway RRB NTPC Admit Card 2025 Released', org:'RRB', date:'2025-02-22', link:'https://indianrailways.gov.in', tags:['RRB','NTPC'] },
-  { id:'f4', type:'result',    title:'IBPS PO Mains 2024 Result Declared', org:'IBPS', date:'2025-02-18', link:'https://ibps.in', tags:['IBPS','PO'] },
-  { id:'f5', type:'vacancy',   title:'DRDO Scientist B Recruitment 2025 (635 Posts)', org:'DRDO', date:'2025-02-10', lastDate:'2025-03-25', link:'https://drdo.gov.in', tags:['DRDO','Scientist'] },
-  { id:'f6', type:'examdate',  title:'NEET UG 2025 Exam Date – May 4', org:'NTA', date:'2025-02-25', examDate:'May 4, 2025', link:'https://nta.ac.in', tags:['NTA','NEET'] },
-  { id:'f7', type:'admitcard', title:'UPPSC PCS Prelims 2025 Admit Card Available', org:'UPPSC', date:'2025-02-28', link:'https://uppsc.up.nic.in', tags:['UPPSC','PCS'] },
-  { id:'f8', type:'result',    title:'SBI PO Mains 2024-25 Final Result Out', org:'SBI', date:'2025-03-01', link:'https://sbi.co.in', tags:['SBI','PO'] },
-  { id:'f9', type:'vacancy',   title:'NABARD Grade A & B Recruitment 2025 (102 Posts)', org:'NABARD', date:'2025-03-02', lastDate:'2025-04-01', link:'https://nabard.org', tags:['NABARD'] },
-  { id:'f10',type:'vacancy',   title:'High Court Allahabad – Law Clerk (150 Posts)', org:'High Court', date:'2025-02-26', lastDate:'2025-03-28', link:'https://allahabadhighcourt.in', tags:['Judiciary'] }
-];
-
-// Parse raw XML string into GU entries
-function guParseXml(xmlStr, feedName) {
-  var parser = new DOMParser();
-  var doc = parser.parseFromString(xmlStr, 'text/xml');
-  var items = Array.from(doc.querySelectorAll('item'));
-  if (!items.length) throw new Error('No items in XML');
-  return items.slice(0, 120).map(function(item, idx) { // Raised limit to 120
-    var title = (item.querySelector('title')||{}).textContent || '';
-    title = title.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
-    var link  = (item.querySelector('link')||{}).textContent || (item.querySelector('guid')||{}).textContent || '#';
-    var pub   = (item.querySelector('pubDate')||{}).textContent || '';
-    var dateStr = pub ? new Date(pub).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
-    if (isNaN(new Date(dateStr))) dateStr = new Date().toISOString().slice(0,10);
-    return {
-      id: guStableId(title, feedName),
-      type: guClassify(title),
-      title: title,
-      org: guExtractOrg(title) || feedName,
-      date: dateStr,
-      lastDate: guExtractLastDate(title), examDate: null,
-      link: link.trim() || '#',
-      tags: [guExtractOrg(title)].filter(Boolean),
-      _rss: true
-    };
-  }).filter(function(e){ return e.title && e.title.length > 8; });
-}
-
-// Fetch one feed with all proxy strategies tried in order
-async function guFetchFeed(primaryFeed) {
-  var raw = GU_RAW_FEEDS.find(function(f){ return f.name === primaryFeed.name; });
-  if (!raw) raw = { raw: '', name: primaryFeed.name };
-  var strategies = guBuildFeedUrls(raw.raw, raw.name);
-
-  for (var s = 0; s < strategies.length; s++) {
-    var strategy = strategies[s];
-    try {
-      var res = await Promise.race([
-        fetch(strategy.url, { cache: 'no-store' }),
-        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('Timeout')); }, 5000); })
-      ]);
-      if (!res.ok) continue;
-
-      if (strategy.type === 'own') {
-        var ownData = await res.json();
-        if (ownData.ok && ownData.items && ownData.items.length) {
-          return ownData.items.slice(0, 120).map(function(item, idx) {
-            var title = (item.title||'').trim();
-            return {
-              id: guStableId(title, strategy.name),
-              type: guClassify(title),
-              title: title,
-              org: guExtractOrg(title) || strategy.name,
-              date: item.pubDate ? new Date(item.pubDate).toISOString().slice(0,10) : new Date().toISOString().slice(0,10),
-              lastDate: guExtractLastDate(title), examDate: null,
-              link: item.link || '#',
-              tags: [guExtractOrg(title)].filter(Boolean),
-              _rss: true
-            };
-          }).filter(function(e){ return e.title.length > 8; });
-        }
-      } 
-      else if (strategy.type === 'r2j') {
-      
-        var data = await res.json();
-        if (data.status === 'ok' && data.items && data.items.length) {
-          return data.items.slice(0, 120).map(function(item, idx) { // Raised limit to 120
-            var title = (item.title||'').replace(/<[^>]+>/g,'').trim();
-            return {
-              id: guStableId(title, strategy.name),
-              type: guClassify(title),
-              title: title,
-              org: guExtractOrg(title) || strategy.name,
-              date: item.pubDate ? item.pubDate.slice(0,10) : new Date().toISOString().slice(0,10),
-              lastDate: guExtractLastDate(title), examDate: null,
-              link: item.link || item.url || '#',
-              tags: [guExtractOrg(title)].filter(Boolean),
-              _rss: true
-            };
-          }).filter(function(e){ return e.title.length > 8; });
-        }
-      } else if (strategy.type === 'allorigins') {
-        var json = await res.json();
-        if (json && json.contents) {
-          return guParseXml(json.contents, strategy.name);
-        }
-      } else {
-        var xmlText = await res.text();
-        return guParseXml(xmlText, strategy.name);
-      }
-    } catch(e) { continue; }
-  }
-  throw new Error('All strategies failed for ' + primaryFeed.name);
-}
-
-// AI-powered data generation when all RSS fails
-async function guFetchAI() {
-  try {
-    var today = new Date().toISOString().slice(0,10);
-    var res = await Promise.race([
-      fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
-          messages: [{
-            role: 'user',
-            content: 'Generate 40 realistic Indian government job notifications for today (' + today + '). Return ONLY a JSON array, no markdown, no extra text. Each object must have exactly these fields: id (string), type (one of: vacancy/admitcard/examdate/result), title (string), org (string like UPSC/SSC/RRB/IBPS/NTA/DRDO/SBI/RBI/AIIMS/ISRO), date (YYYY-MM-DD near today), lastDate (YYYY-MM-DD or null), examDate (string or null), link (official URL), tags (array of strings). Mix all 4 types. Make titles realistic and specific with post counts.'
-          }]
-        })
-      }),
-      new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('AI Timeout')); }, 15000); })
-    ]);
-    if (!res.ok) throw new Error('AI API error');
-    var aiData = await res.json();
-    var text = (aiData.content||[]).map(function(c){ return c.text||''; }).join('');
-    text = text.replace(/```json|```/g,'').trim();
-    var entries = JSON.parse(text);
-    if (!Array.isArray(entries) || !entries.length) throw new Error('Bad AI response');
-    return entries.map(function(e, i){
-      return {
-        id: 'ai_'+i+'_'+Date.now(),
-        type: ['vacancy','admitcard','examdate','result'].includes(e.type) ? e.type : 'vacancy',
-        title: e.title || 'Government Notification',
-        org: e.org || 'GOI',
-        date: e.date || today,
-        lastDate: e.lastDate || null,
-        examDate: e.examDate || null,
-        link: e.link || '#',
-        tags: Array.isArray(e.tags) ? e.tags : [],
-        _ai: true
-      };
-    });
-  } catch(e) {
-    return null;
-  }
-}
-
-// ── Stable ID so "new" detection works across refreshes (title+source based, not time-based)
-function guStableId(title, source) {
-  var s = (title||'') + '|' + (source||'');
-  var h = 0;
-  for (var i=0; i<s.length; i++) { h = ((h<<5)-h) + s.charCodeAt(i); h |= 0; }
-  return 'gu_' + Math.abs(h);
-}
-
-// ── Seen-entries tracking (for "NEW" badge)
-function guGetSeenIds() { return Sv.get("gu_seen_ids") || []; }
-function guMarkAllSeen(entries) {
-  var ids = entries.map(function(e){ return e.id; });
-  Sv.set("gu_seen_ids", ids.slice(0, 500)); // cap growth
-  Sv.set("gu_last_visit", Date.now());
-}
-function guIsNew(entry, seenIds) {
-  return seenIds.length > 0 && seenIds.indexOf(entry.id) === -1;
-}
-
-// ── Bookmarks for govt updates (separate namespace so it doesn't clash with quiz bookmarks)
-function guGetBookmarks() { return Sv.get("gu_bookmarks") || []; }
-function guIsBookmarked(entryId) { return guGetBookmarks().some(function(b){ return b.id === entryId; }); }
-function guToggleBookmark(entry) {
-  var bms = guGetBookmarks();
-  var idx = bms.findIndex(function(b){ return b.id === entry.id; });
-  if (idx >= 0) { bms.splice(idx,1); Sv.set("gu_bookmarks", bms); toast("Bookmark removed"); return false; }
-  bms.push(entry); Sv.set("gu_bookmarks", bms); toast("Saved! ⭐"); return true;
-}
-
-// ── Days-left helper (also used for sort priority)
-function guDaysLeft(lastDateStr) {
-  if (!lastDateStr) return null;
-  var cleanDateStr = lastDateStr.replace(/(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})/, '$3-$2-$1');
-  var parsedDate = new Date(cleanDateStr);
-  if (isNaN(parsedDate)) return null;
-  var diffMs = parsedDate - new Date();
-  return Math.ceil(diffMs / (1000*60*60*24));
-}
-
-// ── Sort: closing-soon-and-still-open first, then new items, then by date desc
-function guSortEntries(entries, seenIds) {
-  return entries.slice().sort(function(a,b){
-    var da = guDaysLeft(a.lastDate), db = guDaysLeft(b.lastDate);
-    var aUrgent = da !== null && da >= 0 && da <= 5;
-    var bUrgent = db !== null && db >= 0 && db <= 5;
-    if (aUrgent && !bUrgent) return -1;
-    if (bUrgent && !aUrgent) return 1;
-    if (aUrgent && bUrgent) return da - db;
-
-    var aNew = guIsNew(a, seenIds), bNew = guIsNew(b, seenIds);
-    if (aNew && !bNew) return -1;
-    if (bNew && !aNew) return 1;
-
-    return (b.date||'') > (a.date||'') ? 1 : -1;
-  });
-}
-
-// Cache for RSS results (persisted across sessions too)
-var guRssCache = null;
-var guLastFetch = 0;
 
 function pgGovtUpdates(){
   var w = el("div",{cls:"fd"});

@@ -1,12 +1,17 @@
-var SUBJ = ["History", "Geography", "Polity", "Economy", "Science", "GK", "Current Affairs", "Previous Year Questions"];
+var SUBJ = ["History", "Geography", "Environment & Ecology", "Economy", "Polity", "Physics", "Chemistry", "Biology", "Science & Technology", "Computer", "Art & Culture", "Sports", "Miscellaneous"];
 
 var ICON = {
-    "History": "🏛️", "Geography": "🌍", "Polity": "⚖️", "Economy": "📈", 
-    "Science": "🔬", "GK": "💡", "Current Affairs": "📰", "Previous Year Questions": "📜"
+    "History": "🏛️", "Geography": "🌍", "Environment & Ecology": "🌱", "Economy": "📈",
+    "Polity": "⚖️", "Physics": "⚡", "Chemistry": "🧪", "Biology": "🧬",
+    "Science & Technology": "🚀", "Computer": "💻", "Art & Culture": "🎭",
+    "Sports": "🏅", "Miscellaneous": "📚"
 };
 
 var AC = {
-    History: "#d97706", Geography: "#059669", Polity: "#7c3aed", Economy: "#db2777", Science: "#0891b2", GK: "#65a30d", "Current Affairs": "#3b82f6", "Previous Year Questions": "#93c5fd"
+    History: "#7c3aed", Geography: "#059669", "Environment & Ecology": "#16a34a", Economy: "#0284c7",
+    Polity: "#dc2626", Physics: "#0ea5e9", Chemistry: "#f59e0b", Biology: "#84cc16",
+    "Science & Technology": "#6366f1", Computer: "#4f46e5", "Art & Culture": "#db2777",
+    Sports: "#f97316", Miscellaneous: "#64748b"
 };
 
 var Sv = {
@@ -174,6 +179,10 @@ function render() {
     var cac = document.getElementById("current-affairs-container");
     if(cac) cac.style.display = (pg == "digest") ? "block" : "none";
 
+    // ── ADD THIS LINE FOR TOPIC LIST ──
+    else if(pg == "topiclist") app.appendChild(pgTopicList());
+    else if(pg == "alltopics") app.appendChild(pgAllTopics());
+
     if(pg == "home") app.appendChild(pgHome());
     else if(pg == "sub") app.appendChild(pgSub());
     else if(pg == "fcmenu") app.appendChild(pgFCMenu());
@@ -202,61 +211,6 @@ function getDailyQuote() {
     return QUOTES[day % QUOTES.length];
 }
 
-function makeQuoteCard() {
-    var q = getDailyQuote();
-    var card = el("div", {
-        css: {
-            background: "var(--card)", border: "1px solid var(--border)", 
-            borderRadius: "16px", padding: "28px 30px", marginBottom: "28px", 
-            position: "relative", overflow: "hidden", boxShadow: "var(--shadow-card)"
-        }
-    });
-
-    var topLine = el("div", {
-        css: {
-            position: "absolute", top: "0", left: "0", right: "0", height: "2px", 
-            background: "linear-gradient(90deg, var(--accent), var(--accent2))"
-        }
-    });
-    card.appendChild(topLine);
-
-    var deco = el("div", {
-        css: {
-            position: "absolute", top: "16px", right: "20px", fontSize: "5rem", 
-            lineHeight: "1", color: "var(--border2)", fontFamily: "Georgia, serif", 
-            pointerEvents: "none", userSelect: "none"
-        }
-    }, "\u201C");
-    card.appendChild(deco);
-
-    var label = el("div", {
-        css: {
-            fontSize: ".6rem", textTransform: "uppercase", letterSpacing: ".16em", 
-            color: "var(--accent)", fontWeight: "700", marginBottom: "14px", 
-            fontFamily: "var(--font-display)"
-        }
-    }, "\u2728 Quote of the Day");
-    card.appendChild(label);
-
-    var quote = el("div", {
-        css: {
-            fontSize: "1.05rem", lineHeight: "1.7", color: "var(--text)", 
-            fontStyle: "italic", marginBottom: "14px", fontWeight: "300", 
-            fontFamily: "var(--font-body)"
-        }
-    }, "\u201C" + q.q + "\u201D");
-    card.appendChild(quote);
-
-    var author = el("div", {
-        css: {
-            fontSize: ".78rem", color: "var(--muted)", fontWeight: "500", 
-            fontFamily: "var(--font-display)"
-        }
-    }, "\u2014\u2009" + q.a);
-    card.appendChild(author);
-
-    return card;
-}
 
 // Custom StudyLab Logo
 function makeLogo(sz){
