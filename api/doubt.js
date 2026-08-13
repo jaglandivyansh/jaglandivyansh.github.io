@@ -1,6 +1,6 @@
 // api/doubt.js
 // ─────────────────────────────────────────────────────────────────
-// FINAL PRODUCTION VERSION — STOPS MONOLOGUE & FORCES COMPLETE ANSWERS
+// DYNAMIC TUTOR VERSION — SCALES LENGTH BASED ON QUESTION COMPLEXITY
 // ─────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
@@ -9,8 +9,13 @@ export default async function handler(req, res) {
   const { question } = req.body;
   if (!question || question.trim() === "") return res.status(400).json({ error: "Question is required." });
 
-  // Prompt ko ekdum chota aur directly hit karne waala banaya hai
-  const SYSTEM_PROMPT = "Provide a direct, complete answer for competitive exams under 150 words using simple English. Do not show any internal brainstorming, refining steps, or meta-commentary like 'Refining and Combining'. Start immediately with the facts.";
+  // 🎯 Updated Prompt: Added conditional logic to handle short answers vs long explanations.
+  const SYSTEM_PROMPT = `You are an expert tutor for Indian competitive exams (UPSC, SSC, State PCS). 
+  
+  CRITICAL RESPONSE RULES:
+  1. ADAPTIVE LENGTH: If the question is a direct factual query with a simple 1-5 word answer (e.g., "What is the capital of India?", "Who wrote the Constitution?"), provide ONLY the exact short answer. NO extra words, NO emojis, NO bullet points, NO elaboration.
+  2. DETAILED ANSWERS: ONLY if the question asks for an explanation, concept breakdown, or process, then you must be highly engaging. Use bullet points, **bold text** for keywords, and relevant emojis. Keep it under 200 words.
+  3. NO MONOLOGUES: Never output internal reasoning, planning steps, or introductory filler like "Here is the answer". Provide only the final output.`;
 
   try {
     const sarvamRes = await fetch("https://api.sarvam.ai/v1/chat/completions", {
@@ -22,49 +27,23 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "sarvam-30b", 
         messages: [
-          { role: "user", content: `${SYSTEM_PROMPT}\n\nQuestion: ${question.trim()}` }
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: question.trim() }
         ],
-        temperature: 0.0, 
-        max_tokens: 500
+        temperature: 0.3, // Lowered slightly from 0.5 to keep factual answers more grounded
+        max_tokens: 400 
       })
     });
 
     const data = await sarvamRes.json();
-    if (data.error) return res.status(200).json({ answer: `⚠️ Sarvam Error: ${data.error.message || JSON.stringify(data.error)}` });
+    
+    if (data.error) {
+        return res.status(200).json({ answer: `⚠️ API Error: ${data.error.message || JSON.stringify(data.error)}` });
+    }
 
-    let answer = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.message?.reasoning_content || "";
+    let answer = data?.choices?.[0]?.message?.content || "";
     
     if (answer) {
-      // 🎯 FORCEFUL EXTRACTOR: Agar AI apni aadat se majboor ho kar planning text bhejta hai,
-      // toh hum use direct bullet points ya paragraph se split karke sirf actual answer nikalenge.
-      if (answer.toLowerCase().includes("refining") || answer.toLowerCase().includes("let's start") || answer.toLowerCase().includes("core definition")) {
-        
-        // Agar text ke andar clear point indicators hain jaise "*" ya "-" toh unka use karenge
-        const blocks = answer.split(/\n+/);
-        let cleanLines = [];
-        
-        for (let line of blocks) {
-          let trimmed = line.trim();
-          // Faltu headings ko skip karenge aur sirf quotes ke andar ka ya clean statement uthayenge
-          if (trimmed && !trimmed.toLowerCase().includes("refining") && !trimmed.toLowerCase().includes("structuring") && !trimmed.toLowerCase().includes("brainstorming")) {
-            // Agar line mein "The Prime Minister..." jaisa text quotes mein hai ya direct hai, toh clean karein
-            let cleanLine = trimmed.replace(/^[\s\-\*\"\']+|[\"\'\:]+$/g, '');
-            if (cleanLine.toLowerCase().startsWith("let's start")) {
-              cleanLine = cleanLine.replace(/Let's start with the core definition\.?/i, '').trim();
-            }
-            if (cleanLine) cleanLines.push(cleanLine);
-          }
-        }
-        
-        if (cleanLines.length > 0) {
-          answer = cleanLines.join(" ");
-        }
-      }
-
-      // Agar filter lagne ke baad bhi kuch "Let's start" bacha ho toh ek last safety check
-      answer = answer.replace(/Refining and Combining for Conciseness and Simplicity.*?\n/gi, "");
-      answer = answer.replace(/Let's start with the core definition\.?/gi, "");
-
       return res.status(200).json({ answer: answer.trim() });
     }
 
