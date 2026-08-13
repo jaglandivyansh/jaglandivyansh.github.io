@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "sarvam-30b", 
+        model: "sarvam-105b", 
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: question.trim() }
