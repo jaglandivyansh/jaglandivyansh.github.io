@@ -179,10 +179,9 @@ function render() {
     var cac = document.getElementById("current-affairs-container");
     if(cac) cac.style.display = (pg == "digest") ? "block" : "none";
 
-    // ── ADD THIS LINE FOR TOPIC LIST ──
+    if(pg == "home") app.appendChild(pgHome());
     else if(pg == "topiclist") app.appendChild(pgTopicList());
     else if(pg == "alltopics") app.appendChild(pgAllTopics());
-    if(pg == "home") app.appendChild(pgHome());
     else if(pg == "sub") app.appendChild(pgSub());
     else if(pg == "fcmenu") app.appendChild(pgFCMenu());
     else if(pg == "fc") app.appendChild(pgFC());
