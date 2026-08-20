@@ -183,6 +183,7 @@ function render() {
     else if(pg == "topiclist") app.appendChild(pgTopicList());
     else if(pg == "alltopics") app.appendChild(pgAllTopics());
     else if(pg == "sub") app.appendChild(pgSub());
+    else if(pg == "read") app.appendChild(pgRead());
     else if(pg == "fcmenu") app.appendChild(pgFCMenu());
     else if(pg == "fc") app.appendChild(pgFC());
     else if(pg == "swipefc") app.appendChild(pgSwipeFC());

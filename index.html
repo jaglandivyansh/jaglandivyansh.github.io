@@ -373,43 +373,81 @@ function fetchQuestionsAndStart() {
     { subject: "Art & Culture", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1479607629&single=true&output=csv" },
     { subject: "Sports", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1637380538&single=true&output=csv" },
     { subject: "Miscellaneous", url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcBWlFTv2n-_i5YFQZNee2YF9ACG0cn6SjCEYfwkp2518wfJJx7-VMPSv_dXNKtS5cst0S8u3FRlHA/pub?gid=1818113994&single=true&output=csv" }
-];
+  ];
 
   let completedRequests = 0;
-  let hasErrors = false;
+  let failedSubjects = [];
+
+  // ── SINGLE source of truth for "are we done yet?" ──
+  // Called after EVERY request finishes, success or failure.
+  // initializeApp() fires exactly once, the moment all requests
+  // have settled — regardless of how many failed.
+  function checkAllDone() {
+    if (completedRequests === SHEET_SOURCES.length) {
+      if (failedSubjects.length > 0) {
+        console.warn("Sheets that failed to load:", failedSubjects.join(", "));
+        if (typeof toast === 'function') {
+          toast("Some subjects failed to load: " + failedSubjects.join(", "), "#f59e0b");
+        } else {
+          alert("Some sheets failed to load: " + failedSubjects.join(", ") + ". Please check your internet connection.");
+        }
+      }
+      window.totalQuestions = Object.values(window.QD).reduce((sum, arr) => sum + arr.length, 0);
+      initializeApp();
+    }
+  }
+
+  // ── Safety net: if any single sheet hangs (slow network, dead
+  // link, etc.) for more than 15s, treat it as failed instead of
+  // blocking the whole app forever. ──
+  const PER_SHEET_TIMEOUT_MS = 15000;
 
   SHEET_SOURCES.forEach(function(source) {
+    let settled = false;
     let uniqueTimestamp = new Date().getTime();
     let freshUrl = source.url + "&nocache=" + uniqueTimestamp;
     let subject = source.subject;
 
+    let timeoutId = setTimeout(function() {
+      if (settled) return;
+      settled = true;
+      console.error("Timed out fetching sheet for subject:", subject);
+      failedSubjects.push(subject);
+      if (!window.QD[subject]) window.QD[subject] = [];
+      completedRequests++;
+      checkAllDone();
+    }, PER_SHEET_TIMEOUT_MS);
+
     Papa.parse(freshUrl, {
       download: true, header: true, skipEmptyLines: true,
       complete: function(results) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+
         if (!window.QD[subject]) window.QD[subject] = [];
         results.data.forEach(function(row) {
           if (!row["Question"]) return;
           window.QD[subject].push({
-           q: row["Question"],
-           o: [row["Option A"], row["Option B"], row["Option C"], row["Option D"]],
-           a: parseInt(row["Correct Answer"]) - 1,
-           topic: row["Topic"] ? row["Topic"].trim() : "" // <--- ADD THIS LINE
+            q: row["Question"],
+            o: [row["Option A"], row["Option B"], row["Option C"], row["Option D"]],
+            a: parseInt(row["Correct Answer"]) - 1,
+            topic: row["Topic"] ? row["Topic"].trim() : ""
           });
         });
         completedRequests++;
-        if (completedRequests === SHEET_SOURCES.length && !hasErrors) {
-        window.totalQuestions = Object.values(window.QD).reduce((sum, subjectArray) => sum + subjectArray.length, 0);
-        initializeApp();
-        }
+        checkAllDone();
       },
       error: function(err) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+
         console.error("Error fetching/parsing sheet for subject:", subject, err);
-        hasErrors = true;
+        failedSubjects.push(subject);
+        if (!window.QD[subject]) window.QD[subject] = [];
         completedRequests++;
-        if (completedRequests === SHEET_SOURCES.length) {
-          alert("Some sheets failed to load. Please check your internet connection or try again later.");
-          initializeApp();
-        }
+        checkAllDone();
       }
     });
   });
@@ -543,6 +581,7 @@ if (document.readyState === 'loading') {
 
 <script src="page-govtupdates.js"></script>
 <script src="api.js"></script>
+<script src="reading-data.js"></script>
 <script src="page-home.js"></script>
 <script src="page-study.js"></script>
 <script src="page-alltopics.js"></script>

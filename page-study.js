@@ -34,7 +34,8 @@ var ICO_PATHS = {
   warning:   '<path d="M12 3 2 20h20Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9v5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="17" r="1"/>',
   skip:      '<path d="M5 5l9 7-9 7Z"/><path d="M17 5h2v14h-2Z"/>',
   refresh:   '<path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18 3v4h-4M6 21v-4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
-  confetti:  '<path d="M4 20l3-9 9 3Z"/><circle cx="17" cy="5" r="1.3"/><circle cx="20" cy="10" r="1"/><rect x="12" y="3" width="2" height="2" transform="rotate(20 13 4)"/>'
+  confetti:  '<path d="M4 20l3-9 9 3Z"/><circle cx="17" cy="5" r="1.3"/><circle cx="20" cy="10" r="1"/><rect x="12" y="3" width="2" height="2" transform="rotate(20 13 4)"/>',
+  book:      '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v17H6.5A2.5 2.5 0 0 0 4 22.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v17h5.5a2.5 2.5 0 0 1 2.5 2.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
 };
 function svgIcon(name, opts){
   opts=opts||{};
@@ -99,6 +100,19 @@ function pgSub(){
   c3.appendChild(el("div",{css:{fontSize:"1rem",fontWeight:"600",marginBottom:"4px"},txt:"Bookmarks"}));
   c3.appendChild(el("div",{css:{fontSize:".78rem",color:"var(--subtle)"},txt:bms.length+" saved questions"}));
 
+  // ── READ CARD (only shows as active if content exists for this topic) ──
+  var hasReadContent = topic && typeof RD !== 'undefined' && RD[s] && RD[s][topic];
+  var c0=el("div",{cls:"mc",onclick:function(){
+    if (!hasReadContent) { if (typeof toast === 'function') toast("Notes for this topic are coming soon!", "#f59e0b"); return; }
+    go("read");
+  }, css: hasReadContent ? {} : { opacity: "0.55" }});
+  c0.addEventListener("mouseenter",function(){ if(hasReadContent){ this.style.borderColor="#10b981"; this.style.background="var(--card2)"; } });
+  c0.addEventListener("mouseleave",function(){ this.style.borderColor="var(--border)"; this.style.background="var(--card)"; });
+  var c0i=el("div",{css:{width:"48px",height:"48px",borderRadius:"14px",background:"rgba(16,185,129,0.14)",color:"#10b981",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:"12px"}});
+  c0i.appendChild(svgIcon("book",{size:22}));c0.appendChild(c0i);
+  c0.appendChild(el("div",{css:{fontSize:"1rem",fontWeight:"600",marginBottom:"4px"},txt:"Read"}));
+  c0.appendChild(el("div",{css:{fontSize:".78rem",color:"var(--subtle)"},txt: hasReadContent ? "Structured notes · हिंदी + English" : "Coming soon"}));
+
   var ctr=el("div",{css:{textAlign:"center",padding:"12px 0 32px"}});
   var headerIcon = typeof ICON !== 'undefined' && ICON[s] ? ICON[s] : "📚";
   ctr.appendChild(el("div",{css:{fontSize:"3.5rem",marginBottom:"12px"},txt:headerIcon}));
@@ -108,8 +122,100 @@ function pgSub(){
   ctr.appendChild(el("div",{css:{fontSize:".9rem",color:"var(--muted)",marginBottom:"36px"},txt:qs.length+" questions ready"}));
   
   var mrow=el("div",{css:{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))",gap:"16px",justifyContent:"center"}});
-  mrow.appendChild(c1);mrow.appendChild(c2);mrow.appendChild(c3);
+  mrow.appendChild(c0);mrow.appendChild(c1);mrow.appendChild(c2);mrow.appendChild(c3);
   ctr.appendChild(mrow);w.appendChild(ctr);
+  return w;
+}
+
+// ═══════════════════════════════════════════════════════
+// PG-READ — Structured bilingual notes page for a topic
+// ═══════════════════════════════════════════════════════
+function pgRead(){
+  var s = sub, ac = typeof AC !== 'undefined' ? AC[s] : "#3b82f6";
+  var topic = window.activeTopic;
+  var content = (typeof RD !== 'undefined' && RD[s] && RD[s][topic]) ? RD[s][topic] : null;
+
+  var w = el("div",{cls:"fd",css:{maxWidth:"700px",margin:"0 auto",paddingBottom:"60px"}});
+
+  // ── Header / Back ──
+  var nr=el("div",{css:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",marginBottom:"20px",paddingBottom:"16px",borderBottom:"1.5px solid var(--border)"}});
+  nr.appendChild(el("button",{cls:"btn btng",css:{padding:"6px 12px",display:"inline-flex",alignItems:"center",gap:"6px"},onclick:function(){ go("sub", s); }},[svgIcon("back",{size:15}),el("span",{},"Back")]));
+
+  // ── Language Toggle (Hindi / English) ──
+  var langState = { lang: "hi" }; // default Hindi
+  var toggleWrap = el("div",{css:{display:"flex",background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:"10px",padding:"3px",gap:"3px"}});
+  var hiBtn = el("button",{css:{padding:"6px 14px",borderRadius:"7px",border:"none",fontSize:".8rem",fontWeight:"700",cursor:"pointer",background:ac,color:"#fff"},txt:"हिंदी"});
+  var enBtn = el("button",{css:{padding:"6px 14px",borderRadius:"7px",border:"none",fontSize:".8rem",fontWeight:"700",cursor:"pointer",background:"transparent",color:"var(--muted)"},txt:"English"});
+  toggleWrap.appendChild(hiBtn); toggleWrap.appendChild(enBtn);
+  nr.appendChild(toggleWrap);
+  w.appendChild(nr);
+
+  // ── Title ──
+  w.appendChild(el("div",{css:{fontSize:"1.4rem",fontWeight:"800",fontFamily:"var(--font-display)",marginBottom:"20px"},txt: topic || s}));
+
+  // ── Content Container (re-rendered on language switch) ──
+  var body = el("div",{css:{display:"flex",flexDirection:"column",gap:"14px"}});
+  w.appendChild(body);
+
+  function highlightParse(text){
+    // Converts <hl>term</hl> markers into colored highlighted spans
+    var frag = document.createDocumentFragment();
+    var parts = text.split(/(<hl>.*?<\/hl>)/g);
+    parts.forEach(function(part){
+      var m = part.match(/^<hl>(.*?)<\/hl>$/);
+      if (m) {
+        frag.appendChild(el("span",{css:{color:ac,fontWeight:"700",background:ac+"15",padding:"1px 5px",borderRadius:"5px"}},m[1]));
+      } else if (part) {
+        frag.appendChild(document.createTextNode(part));
+      }
+    });
+    return frag;
+  }
+
+  function renderContent(lang){
+    body.innerHTML = "";
+    if (!content) {
+      body.appendChild(el("div",{css:{textAlign:"center",padding:"60px 20px",color:"var(--muted)"}},[
+        el("div",{css:{fontSize:"2.5rem",marginBottom:"12px"}},"📝"),
+        el("div",{css:{fontWeight:"600"}},"Notes for this topic are coming soon!")
+      ]));
+      return;
+    }
+    var blocks = content[lang] || [];
+    blocks.forEach(function(block){
+      if (block.type === "heading") {
+        var h = el("div",{css:{fontSize:"1.1rem",fontWeight:"800",color:ac,marginTop:"10px",fontFamily:"var(--font-display)"}});
+        h.appendChild(highlightParse(block.text));
+        body.appendChild(h);
+      } else if (block.type === "bullet") {
+        var row = el("div",{css:{display:"flex",gap:"10px",alignItems:"flex-start",fontSize:".92rem",lineHeight:"1.6",color:"var(--text)"}});
+        row.appendChild(el("div",{css:{color:ac,fontWeight:"900",flexShrink:"0",marginTop:"1px"}},"•"));
+        var txtDiv = el("div",{});
+        txtDiv.appendChild(highlightParse(block.text));
+        row.appendChild(txtDiv);
+        body.appendChild(row);
+      } else {
+        var p = el("div",{css:{fontSize:".92rem",lineHeight:"1.7",color:"var(--text)"}});
+        p.appendChild(highlightParse(block.text));
+        body.appendChild(p);
+      }
+    });
+  }
+
+  hiBtn.onclick = function(){
+    langState.lang = "hi";
+    hiBtn.style.background = ac; hiBtn.style.color = "#fff";
+    enBtn.style.background = "transparent"; enBtn.style.color = "var(--muted)";
+    renderContent("hi");
+  };
+  enBtn.onclick = function(){
+    langState.lang = "en";
+    enBtn.style.background = ac; enBtn.style.color = "#fff";
+    hiBtn.style.background = "transparent"; hiBtn.style.color = "var(--muted)";
+    renderContent("en");
+  };
+
+  renderContent("hi"); // default view
   return w;
 }
 
@@ -1003,6 +1109,8 @@ function pgTopicList() {
                 return q.topic && q.topic.toLowerCase().trim() === topicName.toLowerCase().trim();
             });
             var count = tq.length;
+            var hasRead = typeof RD !== 'undefined' && RD[s] && RD[s][topicName];
+            var unlocked = count > 0 || hasRead;
             
             var card = el("div", {
                 css: {
@@ -1012,19 +1120,19 @@ function pgTopicList() {
                     backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)"
                 },
                 onclick: function() {
-                    if (count === 0) {
-                        if(typeof toast === 'function') toast("Questions for this topic are being added soon!", "#f59e0b");
-                        else alert("Questions coming soon!");
+                    if (!unlocked) {
+                        if(typeof toast === 'function') toast("Content for this topic is being added soon!", "#f59e0b");
+                        else alert("Content coming soon!");
                         return;
                     }
                     window.activeTopic = topicName;
-                    go("sub", s); // Navigate to the Study Menu (Quiz/Flashcards)
+                    go("sub", s); // Navigate to the Study Menu (Read/Quiz/Flashcards)
                 }
             });
             
             // Hover Effects
             card.addEventListener("mouseenter", function() { 
-                if(count > 0) {
+                if(unlocked) {
                     this.style.transform = "translateY(-3px)"; 
                     this.style.borderColor = d.color; 
                     this.style.background = "var(--card2)";
@@ -1043,27 +1151,30 @@ function pgTopicList() {
             // Topic Number Badge
             var numberBadge = el("div", {
                 css: {
-                    width: "44px", height: "44px", borderRadius: "12px", background: count > 0 ? d.color + "15" : "var(--bg2)",
-                    border: "1px solid " + (count > 0 ? d.color + "40" : "var(--border)"), display: "flex", 
+                    width: "44px", height: "44px", borderRadius: "12px", background: unlocked ? d.color + "15" : "var(--bg2)",
+                    border: "1px solid " + (unlocked ? d.color + "40" : "var(--border)"), display: "flex", 
                     alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: "800", 
-                    color: count > 0 ? d.color : "var(--subtle)", fontFamily: "var(--font-display)"
+                    color: unlocked ? d.color : "var(--subtle)", fontFamily: "var(--font-display)"
                 },
                 txt: (idx + 1)
             });
             leftSide.appendChild(numberBadge);
             
             var textCol = el("div", { css: { display: "flex", flexDirection: "column" } });
-            textCol.appendChild(el("div", { css: { fontSize: "1.05rem", fontWeight: "700", color: count > 0 ? "var(--text)" : "var(--muted)", marginBottom: "4px", fontFamily: "var(--font-body)", lineHeight: "1.3" }, txt: topicName }));
+            textCol.appendChild(el("div", { css: { fontSize: "1.05rem", fontWeight: "700", color: unlocked ? "var(--text)" : "var(--muted)", marginBottom: "4px", fontFamily: "var(--font-body)", lineHeight: "1.3" }, txt: topicName }));
             
-            // Status Tag
-            var statusTag = el("div", { css: { fontSize: ".75rem", fontWeight: "600", color: count > 0 ? "var(--subtle)" : "#f59e0b" } });
-            statusTag.textContent = count > 0 ? (count + " Questions") : "Coming Soon ⏳";
+            // Status Tag — show what's actually available (Notes and/or Questions)
+            var statusParts = [];
+            if (hasRead) statusParts.push("Notes");
+            if (count > 0) statusParts.push(count + " Questions");
+            var statusTag = el("div", { css: { fontSize: ".75rem", fontWeight: "600", color: unlocked ? "var(--subtle)" : "#f59e0b" } });
+            statusTag.textContent = unlocked ? statusParts.join(" · ") : "Coming Soon ⏳";
             textCol.appendChild(statusTag);
             
             leftSide.appendChild(textCol);
             card.appendChild(leftSide);
             
-            var rightSide = el("div", { css: { fontSize: "1.2rem", color: count > 0 ? d.color : "var(--border2)", fontWeight: "800" }, txt: "→" });
+            var rightSide = el("div", { css: { fontSize: "1.2rem", color: unlocked ? d.color : "var(--border2)", fontWeight: "800" }, txt: "→" });
             card.appendChild(rightSide);
             
             listWrap.appendChild(card);
