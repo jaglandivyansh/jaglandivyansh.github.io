@@ -1,38 +1,41 @@
 // ═══════════════════════════════════════════════════════════════════
 // PAGE-SKILLTREE.JS — RPG-Style Syllabus Progression
+// Nodes are generated live from window.SD (the same topic board the
+// home page uses) — so the skill tree never goes stale when topics
+// are added, renamed, or reordered on the home page.
 // ═══════════════════════════════════════════════════════════════════
 
-var SKILL_TREES = {
-  "History": {
-    theme: "#7c3aed",
-    nodes: [
-      { id: "hist_1", title: "Indus Valley Civilization", desc: "The dawn of ancient India.", icon: "🏺", req: [] },
-      { id: "hist_2", title: "Vedic Period & Mahajanapadas", desc: "Early texts and kingdoms.", icon: "📜", req: ["hist_1"] },
-      { id: "hist_3", title: "Mauryan Empire", desc: "Chandragupta and Ashoka.", icon: "🦁", req: ["hist_2"] },
-      { id: "hist_4", title: "Gupta Empire", desc: "The Golden Age of India.", icon: "🪙", req: ["hist_3"] },
-      { id: "hist_5", title: "Delhi Sultanate", desc: "The medieval transition.", icon: "🕌", req: ["hist_4"] },
-      { id: "hist_6", title: "Mughal Empire", desc: "Art, architecture and expansion.", icon: "🏰", req: ["hist_5"] },
-      { id: "hist_7", title: "Freedom Struggle", desc: "The road to independence.", icon: "🇮🇳", req: ["hist_6"] }
-    ]
-  },
-  "Polity": {
-    theme: "#dc2626",
-    nodes: [
-      { id: "pol_1", title: "Making of the Constitution", desc: "Historical background and assembly.", icon: "📜", req: [] },
-      { id: "pol_2", title: "Preamble & Territory", desc: "The philosophy of the state.", icon: "🇮🇳", req: ["pol_1"] },
-      { id: "pol_3", title: "Fundamental Rights", desc: "Articles 12 to 35.", icon: "🛡️", req: ["pol_2"] },
-      { id: "pol_4", title: "Directive Principles", desc: "DPSP and Fundamental Duties.", icon: "⚖️", req: ["pol_3"] },
-      { id: "pol_5", title: "Union Executive", desc: "President, PM, and Council.", icon: "🏛️", req: ["pol_4"] }
-    ]
-  }
-};
+function slSlug(subj) {
+  return subj.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+}
+
+function getSkillTree(subj) {
+  var d = (typeof window.SD !== "undefined") ? window.SD[subj] : null;
+  if (!d || !d.topics || !d.topics.length) return null;
+
+  var slug = slSlug(subj);
+  var syms = (d.sym && d.sym.length) ? d.sym : ["📘"];
+
+  var nodes = d.topics.map(function(topic, idx) {
+    return {
+      id: slug + "_" + idx,
+      title: topic,
+      desc: "",
+      icon: syms[idx % syms.length],
+      req: idx === 0 ? [] : [slug + "_" + (idx - 1)]
+    };
+  });
+
+  return { theme: d.color || "var(--accent)", nodes: nodes };
+}
 
 function pgSkillTree() {
   var w = el("div", { cls: "fd" });
   w.appendChild(makeNav("home"));
 
-  var currentSubj = window.skillTreeSubj || "History";
-  var treeData = SKILL_TREES[currentSubj];
+  var allSubjects = (typeof window.SD !== "undefined") ? Object.keys(window.SD) : [];
+  var currentSubj = window.skillTreeSubj || allSubjects[0] || "History";
+  var treeData = getSkillTree(currentSubj);
   
   if (!treeData) {
     w.appendChild(el("div", {css: {padding: "40px", textAlign: "center", color: "var(--muted)"}}, "Skill tree coming soon for " + currentSubj));
@@ -49,12 +52,13 @@ function pgSkillTree() {
   hd.appendChild(el("div", { css: { fontSize: ".9rem", color: "var(--muted)", marginTop: "8px" }, txt: "Score 80% in challenges to unlock the next level." }));
   
   var switcher = el("div", { css: { display: "flex", gap: "8px", justifyContent: "center", marginTop: "20px", flexWrap: "wrap" } });
-  Object.keys(SKILL_TREES).forEach(function(s) {
+  allSubjects.forEach(function(s) {
+    var sColor = (window.SD[s] && window.SD[s].color) || "var(--accent)";
     var btn = el("button", {
       css: {
-        padding: "6px 14px", borderRadius: "20px", border: "1px solid " + (s === currentSubj ? SKILL_TREES[s].theme : "var(--border)"),
-        background: s === currentSubj ? SKILL_TREES[s].theme + "20" : "transparent",
-        color: s === currentSubj ? SKILL_TREES[s].theme : "var(--muted)",
+        padding: "6px 14px", borderRadius: "20px", border: "1px solid " + (s === currentSubj ? sColor : "var(--border)"),
+        background: s === currentSubj ? sColor + "20" : "transparent",
+        color: s === currentSubj ? sColor : "var(--muted)",
         fontSize: ".8rem", fontWeight: "700", cursor: "pointer"
       },
       onclick: function() { window.skillTreeSubj = s; go("skilltree"); }
@@ -151,11 +155,9 @@ function pgSkillTree() {
     
     var levelTag = el("div", {css: {fontSize: ".65rem", color: treeData.theme, fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px"}}, "Level " + (idx + 1));
     var title = el("div", {css: {fontSize: "1rem", fontWeight: "700", color: textCol, marginBottom: "4px", fontFamily: "var(--font-display)", lineHeight: "1.3"}}, node.title);
-    var desc = el("div", {css: {fontSize: ".75rem", color: "var(--muted)", lineHeight: "1.5"}}, node.desc);
-    
     textCard.appendChild(levelTag);
     textCard.appendChild(title);
-    textCard.appendChild(desc);
+    if (node.desc) textCard.appendChild(el("div", {css: {fontSize: ".75rem", color: "var(--muted)", lineHeight: "1.5"}}, node.desc));
     nodeWrap.appendChild(textCard);
 
     pathContainer.appendChild(nodeWrap);

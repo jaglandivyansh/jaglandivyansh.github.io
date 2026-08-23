@@ -22,13 +22,72 @@ const DAILY_QUOTES = [
   { text: "The future depends on what you do today.", author: "Mahatma Gandhi" }
 ];
 
-// ─── REIMAGINED HERO SECTION (Without Skill Tree Badge) ───────────────
+// ─── EXAM COUNTDOWN HERO ─────────────────────────────────────────────
+// Replaces the old search/orbit hero. Shows a live countdown to the
+// student's nearest saved exam: a circular day-ring on the left,
+// exam name + date + next-exam preview on the right. Data persists
+// in localStorage (same pattern as sl_user elsewhere in this file).
+// Preloaded exam dates are sourced dates as of Aug 2026 — some are
+// officially confirmed, some are tentative windows; both are labelled
+// honestly rather than presented as equally certain.
+
+var EXAM_COUNTDOWN_KEY = "sl_exam_countdown";
+
+// Preset exams, sourced as of Aug 2026. `confirmed: true` = official date
+// notified by the conducting body. `confirmed: false` = expected window,
+// shown honestly as tentative rather than presented with false precision.
+var EXAM_PRESETS = [
+  { name: "UPSC CSE Prelims 2027", date: "2027-05-23", confirmed: true, category: "UPSC", icon: "landmark" },
+  { name: "UPSC CSE Mains 2027", date: "2027-08-20", confirmed: true, category: "UPSC", icon: "landmark" },
+  { name: "SSC CGL 2026 Tier 1", date: "2026-09-30", confirmed: false, category: "SSC", icon: "file-check" },
+  { name: "SSC CHSL 2026 Tier 1", date: "2026-09-30", confirmed: false, category: "SSC", icon: "file-check" },
+  { name: "IBPS PO 2026 Prelims", date: "2026-11-01", confirmed: false, category: "Banking", icon: "bank" },
+  { name: "RRB NTPC 2026", date: "2026-11-15", confirmed: false, category: "Railways", icon: "train" }
+];
+
+var EXAM_ICONS = {
+  landmark: '<path d="M4 21h16M5 21V9.5M19 21V9.5M3 9.5l9-5.5 9 5.5M8 21v-7M12 21v-7M16 21v-7"/>',
+  "file-check": '<path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 14.5l2 2 4-4.5"/>',
+  bank: '<path d="M3 10l9-6 9 6M4 10v9h16v-9M9 19v-6M15 19v-6M2 21h20"/>',
+  train: '<rect x="5" y="4" width="14" height="13" rx="3"/><path d="M8 4v13M16 4v13M5 12h14"/><circle cx="8.5" cy="14.5" r="0.6" fill="currentColor"/><circle cx="15.5" cy="14.5" r="0.6" fill="currentColor"/><path d="M8 20l-2 2M16 20l2 2"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'
+};
+
+function examIconSvg(key, color) {
+  var body = EXAM_ICONS[key] || EXAM_ICONS.calendar;
+  return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="' + (color || "currentColor") + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + body + '</svg>';
+}
+
+function loadExamList() {
+  try {
+    var raw = localStorage.getItem(EXAM_COUNTDOWN_KEY);
+    var list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+
+function saveExamList(list) {
+  try { localStorage.setItem(EXAM_COUNTDOWN_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+function daysUntil(dateStr) {
+  var target = new Date(dateStr + "T00:00:00");
+  var now = new Date();
+  var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var diffMs = target - startOfToday;
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function formatExamDate(dateStr) {
+  var d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
 function makeModernHero() {
   var wrap = el("div", {
     css: {
       position: "relative", 
-      padding: "90px 20px 100px",
-      textAlign: "center", 
+      padding: "clamp(28px, 6vw, 56px) clamp(16px, 4vw, 32px) clamp(24px, 5vw, 44px)",
       overflow: "hidden", 
       marginBottom: "0px",
       backgroundImage: "radial-gradient(var(--glass-border) 1px, transparent 1px)",
@@ -46,114 +105,519 @@ function makeModernHero() {
   wrap.appendChild(glow1);
   wrap.appendChild(glow2);
 
-  var content = el("div", { css: { position: "relative", zIndex: "1", maxWidth: "800px", margin: "0 auto" } });
+  var content = el("div", { css: { position: "relative", zIndex: "1", width: "100%", maxWidth: "760px", margin: "0 auto" } });
+  content.id = "exam-countdown-root";
+  content.appendChild(renderExamCountdownBody());
 
-  // High-Impact Headline
-  content.appendChild(el("h1", {
-    css: {
-      fontSize: "clamp(2.8rem, 7vw, 4.5rem)", fontWeight: "800",
-      letterSpacing: "-0.03em", fontFamily: "var(--font-display)",
-      color: "var(--text)", lineHeight: "1.1", marginBottom: "24px",
-      textShadow: "0 12px 32px rgba(0,0,0,0.08)"
-    },
-    htm: "Don't Just Study. <br><span style='background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: gradient-shift 3s ease infinite;'>Conquer the Syllabus.</span>"
-  }));
-
-  // Compelling Subtitle
-  content.appendChild(el("p", {
-    css: {
-      fontSize: "clamp(1rem, 2vw, 1.15rem)", color: "var(--muted)", lineHeight: "1.6",
-      marginBottom: "48px", fontWeight: "400", maxWidth: "90%", margin: "0 auto 48px"
-    },
-    txt: "A distraction-free, gamified learning lab for UPSC & State PCS. Track your progress, unlock skills, and master concepts faster."
-  }));
-
-  // Call To Action Row
-  var ctaRow = el("div", { css: { display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "48px" } });
-  
-  // Primary Button (Glowing & Highly Clickable)
-  var primaryBtn = el("button", {
-    css: {
-      padding: "16px 36px", borderRadius: "16px", border: "none",
-      background: "linear-gradient(135deg, #3b82f6, #6366f1)", 
-      color: "#ffffff", fontWeight: "700", 
-      fontSize: "1.05rem", cursor: "pointer", fontFamily: "var(--font-display)",
-      boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.25)", 
-      transition: "all 0.4s var(--spring-easing)",
-      display: "flex", alignItems: "center", gap: "8px"
-    },
-    onclick: function() { go("govtupdates"); }
-  });
-  primaryBtn.innerHTML = "View Updates <span style='font-size: 1.1rem;'></span>";
-  
-  primaryBtn.addEventListener("mouseenter", function() { 
-      this.style.transform = "scale(1.05) translateY(-3px)"; 
-      this.style.boxShadow = "0 20px 35px -5px rgba(99, 102, 241, 0.6), inset 0 2px 4px rgba(255,255,255,0.3)"; 
-  });
-  primaryBtn.addEventListener("mouseleave", function() { 
-      this.style.transform = "scale(1) translateY(0)"; 
-      this.style.boxShadow = "0 10px 25px -5px rgba(99, 102, 241, 0.5), inset 0 2px 4px rgba(255,255,255,0.25)"; 
-  });
-  
-  // Secondary Button (Glassmorphic)
-  var secondaryBtn = el("button", {
-    css: {
-      padding: "16px 36px", borderRadius: "16px", border: "1px solid var(--glass-border)",
-      background: "var(--glass-bg)", color: "var(--text)", fontWeight: "600",
-      backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-      fontSize: "1.05rem", cursor: "pointer", fontFamily: "var(--font-body)", 
-      transition: "all 0.4s var(--spring-easing)",
-      display: "flex", alignItems: "center", gap: "8px"
-    },
-    onclick: function() { go("shorts"); }
-  });
-  secondaryBtn.innerHTML = "Study Shorts";
-  
-  secondaryBtn.addEventListener("mouseenter", function() { 
-      this.style.transform = "scale(1.05) translateY(-3px)";
-      this.style.background = "var(--glass-border)"; 
-      this.style.borderColor = "var(--muted)";
-  });
-  secondaryBtn.addEventListener("mouseleave", function() { 
-      this.style.transform = "scale(1) translateY(0)";
-      this.style.background = "var(--glass-bg)"; 
-      this.style.borderColor = "var(--glass-border)";
-  });
-  
-  ctaRow.appendChild(primaryBtn);
-  ctaRow.appendChild(secondaryBtn);
-  content.appendChild(ctaRow);
-
-  // Trust / Feature Pills (Social Proof for Students)
-  var featuresRow = el("div", {
-      css: {
-          display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap",
-          paddingTop: "24px", borderTop: "1px solid var(--glass-border)"
-      }
-  });
-
-  var features = [
-      { icon: "🎯", text: "Curated MCQs" },
-      { icon: "🧠", text: "AI Doubt Solver" },
-      { icon: "⚡", text: "Bite-sized Logic" }
-  ];
-
-  features.forEach(function(f) {
-      var featCard = el("div", {
-          css: {
-              display: "flex", alignItems: "center", gap: "8px",
-              color: "var(--muted)", fontSize: "0.85rem", fontWeight: "600",
-              letterSpacing: "0.02em"
-          }
-      });
-      featCard.innerHTML = `<span style="font-size: 1.1rem;">${f.icon}</span> <span>${f.text}</span>`;
-      featuresRow.appendChild(featCard);
-  });
-
-  content.appendChild(featuresRow);
   wrap.appendChild(content);
-
   return wrap;
+}
+
+function refreshExamCountdown() {
+  var root = document.getElementById("exam-countdown-root");
+  if (!root) return;
+  root.innerHTML = "";
+  root.appendChild(renderExamCountdownBody());
+}
+
+function renderExamCountdownBody() {
+  var frag = el("div", {});
+  var list = loadExamList();
+
+  if (list.length === 0) {
+    frag.appendChild(makeExamEmptyState());
+    return frag;
+  }
+
+  var withDays = list.map(function(e, i) { return Object.assign({}, e, { _idx: i, _days: daysUntil(e.date) }); });
+  var upcoming = withDays.filter(function(e) { return e._days >= 0; }).sort(function(a, b) { return a._days - b._days; });
+  var expired = withDays.filter(function(e) { return e._days < 0; }).sort(function(a, b) { return b._days - a._days; });
+
+  if (upcoming.length === 0) {
+    // Every saved exam has passed — tell the user clearly instead of
+    // silently reverting to the generic "set your exam date" screen.
+    frag.appendChild(makeExamExpiredState(expired));
+    return frag;
+  }
+
+  var primary = upcoming[0];
+  var next = upcoming[1];
+
+  frag.appendChild(makeExamCard(primary, next));
+
+  // Passively clean up: if any exam is more than 3 days past, drop it
+  // from storage so it doesn't clutter "Manage exams" forever.
+  var stale = withDays.filter(function(e) { return e._days < -3; });
+  if (stale.length > 0) {
+    var cleaned = withDays.filter(function(e) { return e._days >= -3; }).map(function(e) {
+      var copy = Object.assign({}, e);
+      delete copy._idx; delete copy._days;
+      return copy;
+    });
+    saveExamList(cleaned);
+  }
+
+  return frag;
+}
+
+// ── All saved exams have passed: acknowledge it, offer next steps ──
+function makeExamExpiredState(expired) {
+  var box = el("div", { css: { textAlign: "center", padding: "8px 4px" } });
+
+  var mostRecent = expired[0];
+
+  box.appendChild(el("div", {
+    css: {
+      display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 14px",
+      borderRadius: "100px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)",
+      fontSize: "0.75rem", fontWeight: "700", color: "#4ade80", marginBottom: "16px"
+    }
+  }, "Exam day has passed"));
+
+  box.appendChild(el("h1", {
+    css: {
+      fontSize: "clamp(1.5rem, 5vw, 1.9rem)", fontWeight: "800",
+      letterSpacing: "-0.03em", fontFamily: "var(--font-display)",
+      color: "var(--text)", lineHeight: "1.25", marginBottom: "8px"
+    },
+    txt: mostRecent ? mostRecent.name : "Your exam"
+  }));
+  box.appendChild(el("p", {
+    css: { fontSize: "0.9rem", color: "var(--muted)", marginBottom: "22px" },
+    txt: mostRecent ? "Was on " + formatExamDate(mostRecent.date) + ". Hope it went well — set your next target below." : "Set your next target below."
+  }));
+
+  var chipsRow = el("div", { css: { display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap", marginBottom: "16px" } });
+  EXAM_PRESETS.forEach(function(p) {
+    chipsRow.appendChild(makeExamPresetChip(p));
+  });
+  box.appendChild(chipsRow);
+
+  var actionRow = el("div", { css: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" } });
+
+  var customBtn = el("button", {
+    css: {
+      padding: "10px 20px", borderRadius: "12px", border: "none",
+      background: "linear-gradient(135deg, #3b82f6, #6366f1)", color: "#fff",
+      fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "var(--font-display)",
+      boxShadow: "0 8px 20px -6px rgba(99,102,241,0.5)"
+    },
+    onclick: function() { openExamSettingsModal(); }
+  });
+  customBtn.textContent = "+ Add new exam";
+  actionRow.appendChild(customBtn);
+
+  var clearBtn = el("button", {
+    css: {
+      padding: "10px 20px", borderRadius: "12px", border: "1px solid var(--glass-border)",
+      background: "var(--glass-bg)", color: "var(--muted)",
+      fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "var(--font-body)"
+    },
+    onclick: function() {
+      saveExamList([]);
+      refreshExamCountdown();
+    }
+  });
+  clearBtn.textContent = "Clear passed exams";
+  actionRow.appendChild(clearBtn);
+
+  box.appendChild(actionRow);
+  return box;
+}
+
+// ── Shared preset chip: icon, name, and a clear confirmed/tentative badge ──
+function makeExamPresetChip(p) {
+  var chip = el("button", {
+    css: {
+      display: "flex", alignItems: "center", gap: "8px",
+      padding: "10px 14px", borderRadius: "14px", border: "1px solid var(--glass-border)",
+      background: "var(--glass-bg)", cursor: "pointer", fontFamily: "var(--font-body)",
+      transition: "all 0.2s ease", textAlign: "left"
+    },
+    onclick: function() {
+      var list = loadExamList();
+      list.push({ name: p.name, date: p.date });
+      saveExamList(list);
+      refreshExamCountdown();
+    }
+  });
+
+  var iconBox = el("div", {
+    css: {
+      width: "28px", height: "28px", borderRadius: "9px", flexShrink: "0",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "var(--bg2)", color: "var(--accent2)"
+    }
+  });
+  iconBox.innerHTML = examIconSvg(p.icon, "var(--accent2)");
+  chip.appendChild(iconBox);
+
+  var textCol = el("div", {});
+  var nameRow = el("div", { css: { fontSize: "0.82rem", fontWeight: "700", color: "var(--text)", lineHeight: "1.3" } }, p.name);
+  textCol.appendChild(nameRow);
+
+  var statusRow = el("div", { css: { display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" } });
+  statusRow.appendChild(el("span", { css: { fontSize: "0.68rem", color: "var(--subtle)", fontWeight: "600" } }, p.category));
+  statusRow.appendChild(el("span", { css: { fontSize: "0.68rem", color: "var(--subtle)" } }, "·"));
+  if (p.confirmed) {
+    var confirmedTag = el("span", { css: { display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "0.68rem", color: "#4ade80", fontWeight: "700" } });
+    confirmedTag.appendChild(el("span", { css: { width: "5px", height: "5px", borderRadius: "50%", background: "#4ade80" } }));
+    confirmedTag.appendChild(el("span", {}, "Confirmed"));
+    statusRow.appendChild(confirmedTag);
+  } else {
+    var tentativeTag = el("span", { css: { display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "0.68rem", color: "var(--muted)", fontWeight: "700" } });
+    tentativeTag.appendChild(el("span", { css: { width: "5px", height: "5px", borderRadius: "50%", background: "var(--muted)" } }));
+    tentativeTag.appendChild(el("span", {}, "Expected"));
+    statusRow.appendChild(tentativeTag);
+  }
+  textCol.appendChild(statusRow);
+  chip.appendChild(textCol);
+
+  chip.addEventListener("mouseenter", function() { this.style.borderColor = "var(--accent)"; this.style.transform = "translateY(-1px)"; });
+  chip.addEventListener("mouseleave", function() { this.style.borderColor = "var(--glass-border)"; this.style.transform = "translateY(0)"; });
+  return chip;
+}
+
+// ── Empty state: encourage first-time setup ──
+function makeExamEmptyState() {
+  var box = el("div", {
+    css: {
+      textAlign: "center", padding: "8px 4px"
+    }
+  });
+
+  box.appendChild(el("h1", {
+    css: {
+      fontSize: "clamp(1.7rem, 5vw, 2.2rem)", fontWeight: "800",
+      letterSpacing: "-0.03em", fontFamily: "var(--font-display)",
+      color: "var(--text)", lineHeight: "1.2", marginBottom: "8px"
+    },
+    txt: "Set your exam date"
+  }));
+  box.appendChild(el("p", {
+    css: { fontSize: "0.95rem", color: "var(--muted)", marginBottom: "22px" },
+    txt: "Track a live countdown right here on your home screen."
+  }));
+
+  var grid = el("div", {
+    css: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "10px", maxWidth: "680px", margin: "0 auto 14px"
+    }
+  });
+  EXAM_PRESETS.forEach(function(p) {
+    grid.appendChild(makeExamPresetChip(p));
+  });
+  box.appendChild(grid);
+
+  box.appendChild(el("div", {
+    css: { fontSize: "0.72rem", color: "var(--subtle)", marginBottom: "18px" },
+    txt: "\"Confirmed\" = official date notified · \"Expected\" = tentative window"
+  }));
+
+  var customBtn = el("button", {
+    css: {
+      padding: "11px 24px", borderRadius: "12px", border: "none",
+      background: "linear-gradient(135deg, #3b82f6, #6366f1)", color: "#fff",
+      fontWeight: "700", fontSize: "0.9rem", cursor: "pointer", fontFamily: "var(--font-display)",
+      boxShadow: "0 8px 20px -6px rgba(99,102,241,0.5)"
+    },
+    onclick: function() { openExamSettingsModal(); }
+  });
+  customBtn.textContent = "+ Add custom exam";
+  box.appendChild(customBtn);
+
+  return box;
+}
+
+// ── Main countdown card: ISRO "Mission Control" T-minus readout ──
+function makeExamCard(primary, next) {
+  var days0 = primary._days;
+  var urgency = days0 <= 7 ? "#ef4444" : days0 <= 30 ? "#f59e0b" : "#22d3ee";
+
+  var card = el("div", {
+    cls: "mission-panel",
+    css: {
+      position: "relative", overflow: "hidden",
+      background: "#050b14",
+      border: "1px solid rgba(34,211,238,0.25)",
+      borderRadius: "20px",
+      padding: "clamp(24px, 5vw, 44px) clamp(16px, 4vw, 32px)",
+      textAlign: "center", width: "100%"
+    }
+  });
+  card.id = "exam-mission-panel";
+
+  // Scanning line background (pure CSS animation, defined in styles.css)
+  card.appendChild(el("div", { cls: "mission-scanline", css: { position: "absolute", inset: "0", pointerEvents: "none" } }));
+  // Radar-glow pulse, color follows urgency
+  var radar = el("div", { cls: "mission-radar-pulse", css: { position: "absolute", top: "50%", left: "50%", pointerEvents: "none" } });
+  radar.style.setProperty("--mission-glow", urgency);
+  card.appendChild(radar);
+  // Faint grid overlay for a HUD feel
+  card.appendChild(el("div", { cls: "mission-grid", css: { position: "absolute", inset: "0", pointerEvents: "none" } }));
+
+  var content = el("div", { css: { position: "relative", zIndex: "1" } });
+
+  // MISSION status pill (small, top) — live indicator only, name moved below for readability
+  var header = el("div", {
+    css: {
+      display: "inline-flex", alignItems: "center", gap: "8px",
+      padding: "5px 14px", borderRadius: "100px",
+      background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.3)",
+      marginBottom: "14px"
+    }
+  });
+  header.appendChild(el("span", { cls: "mission-live-dot", css: { width: "6px", height: "6px", borderRadius: "50%", background: urgency, flexShrink: "0" } }));
+  header.appendChild(el("span", {
+    css: { fontSize: "0.68rem", fontWeight: "700", letterSpacing: "0.14em", color: "#7dd3fc", fontFamily: "var(--font-mono, monospace)", textTransform: "uppercase" },
+    txt: days0 <= 7 ? "FINAL APPROACH" : days0 <= 30 ? "COUNTDOWN ACTIVE" : "MISSION SCHEDULED"
+  }));
+  content.appendChild(header);
+
+  // Exam name — full-width, wraps naturally instead of truncating in a pill
+  content.appendChild(el("div", {
+    css: {
+      fontSize: "clamp(1rem, 3vw, 1.35rem)", fontWeight: "700", color: "#e0fbff",
+      fontFamily: "var(--font-display)", letterSpacing: "-0.01em",
+      marginBottom: "22px", lineHeight: "1.3", maxWidth: "90%", marginLeft: "auto", marginRight: "auto"
+    },
+    txt: primary.name
+  }));
+
+  // Big glowing T-minus readout — built as separate digit blocks so each
+  // unit (D/H/M/S) has a stable width and its own label, instead of one
+  // reflowing text string that visually jitters as digits change width.
+  var readout = el("div", {
+    id: "exam-tminus-readout",
+    css: {
+      display: "flex", alignItems: "flex-start", justifyContent: "center",
+      gap: "clamp(4px, 1.4vw, 10px)", flexWrap: "wrap",
+      marginBottom: "20px"
+    }
+  });
+  content.appendChild(readout);
+  content.appendChild(el("div", {
+    css: { height: "1px", width: "56px", background: "linear-gradient(90deg, transparent, rgba(34,211,238,0.4), transparent)", margin: "0 auto 20px" }
+  }));
+
+  card.appendChild(content);
+
+  var metaRow = el("div", {
+    css: { position: "relative", zIndex: "1", fontSize: "0.8rem", color: "#7dd3fc", marginBottom: next ? "12px" : "16px", opacity: "0.85" },
+    txt: "TARGET DATE · " + formatExamDate(primary.date).toUpperCase()
+  });
+  card.appendChild(metaRow);
+
+  if (next) {
+    var nextRow = el("div", {
+      css: {
+        position: "relative", zIndex: "1",
+        display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 12px",
+        borderRadius: "100px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+        fontSize: "0.72rem", color: "#8fa3ad", marginBottom: "16px", fontFamily: "var(--font-mono, monospace)",
+        maxWidth: "92%", marginLeft: "auto", marginRight: "auto"
+      }
+    });
+    nextRow.appendChild(el("span", { css: { fontWeight: "700", color: "#c7e8ee", flexShrink: "0" } }, "NEXT: "));
+    nextRow.appendChild(el("span", { css: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, next.name.toUpperCase() + " · T-" + next._days + "D"));
+    card.appendChild(nextRow);
+  }
+
+  var editLink = el("a", {
+    css: {
+      position: "relative", zIndex: "1", display: "block",
+      fontSize: "0.78rem", color: "#22d3ee", fontWeight: "600", cursor: "pointer",
+      textDecoration: "none", fontFamily: "var(--font-mono, monospace)", letterSpacing: "0.04em"
+    },
+    onclick: function() { openExamSettingsModal(); }
+  });
+  editLink.textContent = "[ MANAGE EXAMS ]";
+  card.appendChild(editLink);
+
+  // Live tick
+  updateMissionCountdown(readout, primary, urgency);
+  if (window._examClockInterval) clearInterval(window._examClockInterval);
+  window._examClockInterval = setInterval(function() {
+    var r = document.getElementById("exam-tminus-readout");
+    if (!r) { clearInterval(window._examClockInterval); return; }
+    updateMissionCountdown(r, primary, urgency);
+  }, 1000);
+
+  return card;
+}
+
+// ── One D / H / M / S digit block in the mission readout ──
+function makeMissionDigitBlock(value, label, urgency, isLast) {
+  var block = el("div", { css: { display: "flex", alignItems: "flex-start", gap: "clamp(2px, 1vw, 6px)" } });
+
+  var box = el("div", {
+    css: {
+      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(34,211,238,0.2)",
+      borderRadius: "12px", padding: "clamp(8px, 2vw, 14px) clamp(6px, 1.6vw, 12px)",
+      minWidth: "clamp(48px, 12vw, 76px)", display: "flex", flexDirection: "column", alignItems: "center"
+    }
+  });
+  box.appendChild(el("div", {
+    css: {
+      fontFamily: "var(--font-mono, 'Courier New', monospace)", fontWeight: "800",
+      fontSize: "clamp(1.4rem, 6vw, 2.6rem)", color: "#e0fbff", lineHeight: "1",
+      fontVariantNumeric: "tabular-nums",
+      textShadow: "0 0 10px " + urgency + "88, 0 0 22px " + urgency + "44"
+    },
+    txt: String(value).padStart(2, "0")
+  }));
+  box.appendChild(el("div", {
+    css: { fontSize: "clamp(0.55rem, 1.6vw, 0.62rem)", color: "#5b7a8c", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "4px", fontFamily: "var(--font-mono, monospace)" },
+    txt: label
+  }));
+  block.appendChild(box);
+
+  if (!isLast) {
+    block.appendChild(el("div", {
+      css: { fontSize: "clamp(1.2rem, 4vw, 1.8rem)", fontWeight: "700", color: urgency, marginTop: "clamp(6px, 2vw, 14px)" },
+      txt: ":"
+    }));
+  }
+  return block;
+}
+
+// ── Rebuilds the T-minus digit blocks every second ──
+function updateMissionCountdown(readout, primary, urgency) {
+  var now = new Date();
+  var target = new Date(primary.date + "T00:00:00");
+  var diffMs = target - now;
+  var totalSec = Math.max(0, Math.floor(diffMs / 1000));
+
+  if (totalSec <= 0) {
+    readout.innerHTML = "";
+    readout.appendChild(el("div", {
+      css: { fontSize: "clamp(1.6rem, 6vw, 2.4rem)", fontWeight: "800", color: urgency, fontFamily: "var(--font-display)" },
+      txt: "LIFTOFF"
+    }));
+    return;
+  }
+
+  var days = Math.floor(totalSec / 86400);
+  var hours = Math.floor((totalSec % 86400) / 3600);
+  var mins = Math.floor((totalSec % 3600) / 60);
+  var secs = totalSec % 60;
+
+  readout.innerHTML = "";
+  readout.appendChild(makeMissionDigitBlock(days, days === 1 ? "day" : "days", urgency, false));
+  readout.appendChild(makeMissionDigitBlock(hours, "hrs", urgency, false));
+  readout.appendChild(makeMissionDigitBlock(mins, "min", urgency, false));
+  readout.appendChild(makeMissionDigitBlock(secs, "sec", urgency, true));
+}
+
+// ── Settings modal: add / edit / remove exams ──
+function openExamSettingsModal() {
+  var overlay = el("div", {
+    css: {
+      position: "fixed", inset: "0", background: "rgba(4,8,16,0.85)",
+      backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: "100000", padding: "20px", animation: "fade-in 0.2s ease"
+    }
+  });
+  overlay.addEventListener("click", function(e) { if (e.target === overlay) document.body.removeChild(overlay); });
+
+  var modal = el("div", {
+    css: {
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: "20px",
+      padding: "24px", maxWidth: "440px", width: "100%", maxHeight: "80vh", overflowY: "auto"
+    }
+  });
+
+  var header = el("div", { css: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" } });
+  header.appendChild(el("div", { css: { fontSize: "1.15rem", fontWeight: "800", fontFamily: "var(--font-display)", color: "var(--text)" }, txt: "Your exams" }));
+  var closeBtn = el("button", {
+    css: { background: "var(--card2)", border: "none", borderRadius: "50%", width: "30px", height: "30px", fontSize: "1.1rem", color: "var(--muted)", cursor: "pointer" },
+    onclick: function() { document.body.removeChild(overlay); }
+  });
+  closeBtn.textContent = "×";
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  var listWrap = el("div", { css: { display: "flex", flexDirection: "column", gap: "8px", marginBottom: "18px" } });
+  modal.appendChild(listWrap);
+
+  function redrawList() {
+    listWrap.innerHTML = "";
+    var list = loadExamList();
+    if (list.length === 0) {
+      listWrap.appendChild(el("div", { css: { fontSize: "0.85rem", color: "var(--muted)", padding: "8px 0" }, txt: "No exams added yet." }));
+      return;
+    }
+    list.forEach(function(e, i) {
+      var row = el("div", {
+        css: {
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "10px 12px", background: "var(--bg2)", borderRadius: "12px", border: "1px solid var(--border)"
+        }
+      });
+      var left = el("div", {});
+      left.appendChild(el("div", { css: { fontSize: "0.88rem", fontWeight: "700", color: "var(--text)" }, txt: e.name }));
+      left.appendChild(el("div", { css: { fontSize: "0.75rem", color: "var(--muted)" }, txt: formatExamDate(e.date) }));
+      row.appendChild(left);
+
+      var removeBtn = el("button", {
+        css: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" },
+        onclick: function() {
+          var l = loadExamList();
+          l.splice(i, 1);
+          saveExamList(l);
+          redrawList();
+          refreshExamCountdown();
+        }
+      });
+      removeBtn.textContent = "Remove";
+      row.appendChild(removeBtn);
+      listWrap.appendChild(row);
+    });
+  }
+  redrawList();
+
+  // Add-new form
+  var formRow = el("div", { css: { display: "flex", flexDirection: "column", gap: "10px", paddingTop: "14px", borderTop: "1px solid var(--border)" } });
+
+  var nameInput = el("input", {
+    type: "text",
+    css: { padding: "10px 12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--bg2)", color: "var(--text)", fontSize: "0.88rem", outline: "none", fontFamily: "var(--font-body)" }
+  });
+  nameInput.placeholder = "Exam name (e.g. State PCS Prelims)";
+
+  var dateInput = el("input", {
+    type: "date",
+    css: { padding: "10px 12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--bg2)", color: "var(--text)", fontSize: "0.88rem", outline: "none", fontFamily: "var(--font-body)" }
+  });
+
+  var addBtn = el("button", {
+    css: {
+      padding: "11px", borderRadius: "10px", border: "none",
+      background: "linear-gradient(135deg, #3b82f6, #6366f1)", color: "#fff",
+      fontWeight: "700", fontSize: "0.88rem", cursor: "pointer", fontFamily: "var(--font-display)"
+    },
+    onclick: function() {
+      var name = nameInput.value.trim();
+      var date = dateInput.value;
+      if (!name || !date) return;
+      var list = loadExamList();
+      list.push({ name: name, date: date });
+      saveExamList(list);
+      refreshExamCountdown();
+      document.body.removeChild(overlay);
+    }
+  });
+  addBtn.textContent = "Add exam";
+
+  formRow.appendChild(nameInput);
+  formRow.appendChild(dateInput);
+  formRow.appendChild(addBtn);
+  modal.appendChild(formRow);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
 }
 
 
@@ -168,12 +632,12 @@ function makeQuoteCard() {
 
   var wrap = el("div", {
     css: {
-      position: "relative", margin: "0 auto 40px", maxWidth: "800px",
+      position: "relative", margin: "0 auto 40px", width: "100%", maxWidth: "900px",
       background: "linear-gradient(145deg, var(--glass-bg), transparent)",
       border: "1px solid var(--glass-border)",
       borderTop: "1px solid rgba(255,255,255,0.1)", 
       backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-      borderRadius: "24px", padding: "40px", textAlign: "center",
+      borderRadius: "24px", padding: "clamp(28px, 6vw, 52px) clamp(20px, 5vw, 48px)", textAlign: "center",
       overflow: "hidden", cursor: "default",
       transition: "transform 0.4s var(--spring-easing), box-shadow 0.4s ease"
     }
@@ -215,16 +679,28 @@ function makeQuoteCard() {
   });
   content.appendChild(badge);
 
-  // Injecting the dynamic quote text
-  content.appendChild(el("div", {
+  // Injecting the dynamic quote text — large decorative quote mark
+  // set apart from the body text, like an editorial pull-quote, rather
+  // than a plain glyph mashed against the first word.
+  var quoteBlock = el("div", { css: { position: "relative", maxWidth: "90%", margin: "0 auto 28px" } });
+  quoteBlock.appendChild(el("div", {
     css: {
-      fontSize: "clamp(1.2rem, 3vw, 1.6rem)", color: "var(--text)", fontWeight: "500", 
+      position: "absolute", top: "-28px", left: "50%", transform: "translateX(-50%)",
+      fontSize: "3.2rem", fontFamily: "Georgia, serif", color: "var(--accent)",
+      opacity: "0.18", lineHeight: "1", pointerEvents: "none", userSelect: "none"
+    },
+    txt: "“"
+  }));
+  quoteBlock.appendChild(el("div", {
+    css: {
+      position: "relative", fontSize: "clamp(1.2rem, 3.2vw, 2rem)", color: "var(--text)", fontWeight: "500", 
       lineHeight: "1.5", letterSpacing: "-0.01em",
-      fontFamily: "var(--font-display)", maxWidth: "85%", margin: "0 auto 28px",
+      fontFamily: "var(--font-display)",
       textShadow: "0 4px 12px rgba(0,0,0,0.05)"
     },
-    txt: "“" + currentQuote.text + "”" 
+    txt: currentQuote.text
   }));
+  content.appendChild(quoteBlock);
 
   var authorRow = el("div", { 
       css: { display: "flex", alignItems: "center", justifyContent: "center", gap: "16px" } 
@@ -247,6 +723,11 @@ function makeQuoteCard() {
   authorRow.appendChild(lineRight);
   
   content.appendChild(authorRow);
+
+  content.appendChild(el("div", {
+    css: { fontSize: "0.7rem", color: "var(--subtle)", marginTop: "18px", fontWeight: "500" },
+    txt: "A new quote arrives here every day"
+  }));
 
   wrap.appendChild(content);
   return wrap;
