@@ -206,6 +206,13 @@
     <span>My Progress</span>
   </button>
 
+  <button id="drawer-install-item" onclick="showInstallModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 2; display:none;">
+    <div class="drawer-icon-box" style="--box-color: #4F8EF7; --box-bg: rgba(79, 142, 247, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+    </div>
+    <span>Install App</span>
+  </button>
+
   <div id="nb-mobile-drawer-divider"></div>
   <div class="drawer-section-title">Support & Community</div>
 
@@ -303,6 +310,7 @@ window.openDrawer = function() {
   if(drawer) drawer.classList.add('open');
   if(overlay) overlay.classList.add('open');
   if(hamburger) hamburger.classList.add('active');
+  if (typeof updateInstallDrawerItem === 'function') updateInstallDrawerItem();
 };
 
 window.closeDrawer = function() {

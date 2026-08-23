@@ -147,6 +147,7 @@ function go(p, s, skipHistory) {
     
     window.currentPage = p;
     closeMobileDrawer();
+    if (typeof trackEngagementForInstall === "function") trackEngagementForInstall(p);
 
     if (!skipHistory) {
         history.pushState({ page: p, sub: s }, "");
@@ -494,10 +495,6 @@ function finishGuestLogin(name, phone) {
         }
     } catch(e) {}
 
-    // Trigger the install prompt now that they are logged in!
-    if (typeof triggerSmartInstallPrompt === "function") {
-        setTimeout(triggerSmartInstallPrompt, 1000);
-    }
     render();
 }
 
@@ -718,6 +715,7 @@ function registerInlineSW() {
 window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     deferredPrompt = e;
+    updateInstallDrawerItem();
 });
 
 function triggerSmartInstallPrompt() {
@@ -943,7 +941,25 @@ window.addEventListener('appinstalled', function() {
     toast("StudyLab installed! Open from your home screen", "#4ade80");
     if (installButton) installButton.style.display = 'none';
     deferredPrompt = null;
+    updateInstallDrawerItem();
 });
+
+function isAppInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function updateInstallDrawerItem() {
+    var item = document.getElementById('drawer-install-item');
+    if (!item) return;
+    if (isAppInstalled()) {
+        item.style.display = 'none';
+        return;
+    }
+    // Show on Android/desktop once Chrome has confirmed installability,
+    // and always on iOS (native prompt doesn't exist there, so we show
+    // manual "Add to Home Screen" instructions instead).
+    item.style.display = (deferredPrompt || isIOS()) ? 'flex' : 'none';
+}
 
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
     console.log('Running as installed PWA');
@@ -956,6 +972,9 @@ function isInStandaloneMode() { return ('standalone' in window.navigator) && (wi
 if (isIOS() && !isInStandaloneMode()) {
     setTimeout(function() { showInstallButton(); }, 2000);
 }
+
+document.addEventListener('DOMContentLoaded', updateInstallDrawerItem);
+if (document.readyState !== 'loading') updateInstallDrawerItem();
 
 // HARDWARE BACK BUTTON & EXIT CONFIRMATION ROUTING
 window.addEventListener('popstate', function(e) {
@@ -1048,61 +1067,252 @@ function showExitConfirmationModal() {
     document.body.appendChild(overlay);
 }
 
+// ── NON-BLOCKING ONBOARDING ──
+// No forced modals on first launch. The app renders immediately; sign-in
+// and install nudges show up as small, dismissible banners, and only at
+// the right moment (not stacked one after another).
+
 function checkInitialSetup() {
-    // Check if user has ever been here
-    var hasVisited = localStorage.getItem('has_visited');
-    
-    if (!hasVisited) {
-        // First time users: Start the flow
-        window.startOnboardingFlow();
-        localStorage.setItem('has_visited', 'true');
-    } else {
-        // Returning users: Check if they need to install
-        if (typeof triggerSmartInstallPrompt === 'function') {
-            triggerSmartInstallPrompt();
+    localStorage.setItem('has_visited', 'true');
+
+    // Gentle, dismissible sign-in nudge — never blocks the app.
+    if (!window.currentUser && !localStorage.getItem('sl_user') && !sessionStorage.getItem('sl_signin_banner_dismissed')) {
+        setTimeout(showSignInBanner, 1200);
+    }
+    // Install banner is triggered separately once the user shows real
+    // engagement (see trackEngagementForInstall(), hooked into go()).
+}
+
+// ── SHARED: GLASS BANNER STYLES + SWIPE-TO-DISMISS ──
+function injectSLBannerStyles() {
+    if (document.getElementById('sl-banner-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'sl-banner-styles';
+    style.textContent =
+        '@keyframes slSpringDown{0%{transform:translate(-50%,-40px) scale(.92);opacity:0}55%{transform:translate(-50%,8px) scale(1.02);opacity:1}100%{transform:translate(-50%,0) scale(1)}}' +
+        '@keyframes slSpringUp{0%{transform:translate(-50%,40px) scale(.92);opacity:0}55%{transform:translate(-50%,-8px) scale(1.02);opacity:1}100%{transform:translate(-50%,0) scale(1)}}' +
+        '@keyframes slPulseGlow{0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}50%{box-shadow:0 0 16px 3px var(--accent-glow)}}' +
+        '@keyframes slShrinkBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}' +
+        '.sl-glass{background:rgba(17,24,39,0.78);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%)}' +
+        '.sl-cta-glow{animation:slPulseGlow 2.4s ease-in-out infinite}' +
+        '.sl-drag-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 10px;opacity:.6}' +
+        '@media (min-width:769px){.sl-drag-handle{display:none}}';
+    document.head.appendChild(style);
+}
+
+function attachSwipeDismiss(banner, direction, onDismiss) {
+    var startY = 0, currentY = 0, dragging = false, threshold = 46;
+    banner.addEventListener('touchstart', function(e) {
+        startY = e.touches[0].clientY; dragging = true;
+        banner.style.animation = 'none';
+        banner.style.transition = 'none';
+    }, { passive: true });
+    banner.addEventListener('touchmove', function(e) {
+        if (!dragging) return;
+        currentY = e.touches[0].clientY;
+        var diff = currentY - startY;
+        if ((direction === 'up' && diff < 0) || (direction === 'down' && diff > 0)) {
+            banner.style.transform = 'translate(-50%,' + diff + 'px)';
         }
+    }, { passive: true });
+    banner.addEventListener('touchend', function() {
+        dragging = false;
+        banner.style.transition = 'transform .32s cubic-bezier(.34,1.56,.64,1)';
+        var diff = currentY - startY;
+        if ((direction === 'up' && diff < -threshold) || (direction === 'down' && diff > threshold)) {
+            onDismiss();
+        } else {
+            banner.style.transform = 'translate(-50%,0)';
+        }
+        startY = 0; currentY = 0;
+    });
+}
+
+// ── FLOATING GLASS BANNER: SIGN IN ──
+function showSignInBanner() {
+    if (window.currentUser || localStorage.getItem('sl_user')) return;
+    if (document.getElementById('sl-signin-banner')) return;
+    injectSLBannerStyles();
+
+    var banner = el("div", {
+        id: "sl-signin-banner",
+        cls: "sl-glass",
+        css: {
+            position: "fixed", top: "calc(var(--topnav-h, 60px) + 10px)", left: "50%",
+            zIndex: "10000", width: "min(92%, 420px)",
+            border: "1px solid var(--border2)", borderRadius: "18px", padding: "14px 16px",
+            boxShadow: "0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)",
+            animation: "slSpringDown .5s cubic-bezier(.34,1.56,.64,1) forwards"
+        }
+    });
+
+    banner.appendChild(el("div", { cls: "sl-drag-handle" }));
+
+    var row = el("div", { css: { display: "flex", alignItems: "center", gap: "12px" } });
+
+    var iconWrap = el("div", {
+        css: {
+            width: "40px", height: "40px", borderRadius: "50%", flexShrink: "0",
+            background: "var(--accent-glow)", display: "flex", alignItems: "center", justifyContent: "center"
+        },
+        htm: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9z"/></svg>'
+    });
+    row.appendChild(iconWrap);
+
+    var textCol = el("div", { css: { flex: "1", minWidth: "0" } });
+    textCol.appendChild(el("div", { css: { fontSize: ".88rem", fontWeight: "700", color: "var(--text)" } }, "Save your progress"));
+    textCol.appendChild(el("div", { css: { fontSize: ".76rem", color: "var(--muted)", marginTop: "1px" } }, "Sync across devices, free forever"));
+    row.appendChild(textCol);
+
+    var dismissBtn = el("button", {
+        css: {
+            width: "26px", height: "26px", borderRadius: "50%", border: "none",
+            background: "rgba(255,255,255,0.06)", color: "var(--muted)", fontSize: ".8rem",
+            cursor: "pointer", flexShrink: "0", display: "flex", alignItems: "center", justifyContent: "center"
+        },
+        onclick: function() { dismissSignInBanner(); }
+    }, "✕");
+    row.appendChild(dismissBtn);
+
+    banner.appendChild(row);
+
+    var signInBtn = el("button", {
+        cls: "sl-cta-glow",
+        css: {
+            width: "100%", marginTop: "12px", padding: "10px", borderRadius: "12px", border: "none",
+            background: "linear-gradient(135deg, var(--accent), var(--accent2))", color: "#fff",
+            fontSize: ".85rem", fontWeight: "700", cursor: "pointer"
+        },
+        onclick: function() {
+            dismissSignInBanner();
+            showLoginModal();
+        }
+    }, "Sign in");
+    banner.appendChild(signInBtn);
+
+    document.body.appendChild(banner);
+    attachSwipeDismiss(banner, 'up', dismissSignInBanner);
+}
+
+function dismissSignInBanner() {
+    var banner = document.getElementById('sl-signin-banner');
+    sessionStorage.setItem('sl_signin_banner_dismissed', 'true');
+    if (banner) {
+        banner.style.animation = "none";
+        banner.style.transition = "transform .3s ease, opacity .3s ease";
+        banner.style.transform = "translate(-50%,-40px)";
+        banner.style.opacity = "0";
+        setTimeout(function() { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 300);
     }
 }
 
-// ── SMART ONBOARDING FLOW ──
-window.startOnboardingFlow = function() {
-    // 1. Welcome Modal
-    showWelcomeModal();
-};
+// ── ENGAGEMENT-BASED INSTALL BANNER ──
+// Only nudge to install once the user has actually done something in the
+// app (not the instant they open it), and as a small floating banner —
+// never a full-screen modal at launch.
+var ENGAGEMENT_THRESHOLD = 2; // pages visited beyond home
 
-function showWelcomeModal() {
-    var overlay = el("div", { css: { position: "fixed", inset: "0", background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: "100000" } });
-    var card = el("div", { css: { background: "var(--card)", padding: "40px", borderRadius: "24px", maxWidth: "400px", width: "90%", textAlign: "center", border: "1px solid var(--border)" } });
-    
-    card.appendChild(el("div", { css: { fontSize: "3rem", marginBottom: "20px" } }, "👋"));
-    card.appendChild(el("h2", { css: { color: "var(--text)", marginBottom: "16px", fontFamily: "var(--font-display)" } }, "Welcome to StudyLab!"));
-    card.appendChild(el("p", { css: { color: "var(--muted)", marginBottom: "32px", lineHeight: "1.6" } }, "Your ultimate exam companion. Master topics, track progress, and ace your exams effortlessly."));
-    
-    var btn = el("button", { 
-        css: { width: "100%", padding: "14px", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer" },
-        txt: "Get Started" 
-    });
-    btn.onclick = function() {
-        document.body.removeChild(overlay);
-        // Prompt Sign-In
-        setTimeout(showLoginModal, 500);
-    };
-    
-    card.appendChild(btn);
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
+function trackEngagementForInstall(page) {
+    if (page === "home") return;
+    if (sessionStorage.getItem('installPromptShown')) return;
+    if (!deferredPrompt) return;
+
+    var count = parseInt(sessionStorage.getItem('sl_engagement_count') || '0', 10) + 1;
+    sessionStorage.setItem('sl_engagement_count', String(count));
+
+    if (count >= ENGAGEMENT_THRESHOLD) {
+        sessionStorage.setItem('installPromptShown', 'true');
+        setTimeout(showInstallBanner, 800);
+    }
 }
 
-// UPDATE THIS FUNCTION IN YOUR APP.JS
-function checkInitialSetup() {
-    var hasVisited = localStorage.getItem('has_visited');
-    
-    if (!hasVisited) {
-        window.startOnboardingFlow();
-        localStorage.setItem('has_visited', 'true');
-    } else {
-        if (window.currentUser || localStorage.getItem('sl_user')) {
-            if (typeof triggerSmartInstallPrompt === 'function') triggerSmartInstallPrompt();
+function showInstallBanner() {
+    if (!deferredPrompt) return;
+    if (document.getElementById('sl-install-banner')) return;
+    injectSLBannerStyles();
+
+    var banner = el("div", {
+        id: "sl-install-banner",
+        cls: "sl-glass",
+        css: {
+            position: "fixed", left: "50%",
+            bottom: "calc(var(--bottomnav-h, 64px) + env(safe-area-inset-bottom, 0px) + 12px)",
+            zIndex: "10000", width: "min(92%, 420px)",
+            border: "1px solid var(--border2)", borderRadius: "18px",
+            padding: "14px 16px 12px", overflow: "hidden",
+            boxShadow: "0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)",
+            animation: "slSpringUp .5s cubic-bezier(.34,1.56,.64,1) forwards"
         }
+    });
+
+    var row = el("div", { css: { display: "flex", alignItems: "center", gap: "12px" } });
+
+    var logoWrap = el("div", {
+        css: {
+            width: "42px", height: "42px", borderRadius: "12px", flexShrink: "0",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 0 0 1px var(--border2)"
+        }
+    });
+    logoWrap.appendChild(makeLogo(42));
+    row.appendChild(logoWrap);
+
+    var mid = el("div", { css: { flex: "1", minWidth: "0" } });
+    mid.appendChild(el("div", { css: { fontSize: ".88rem", fontWeight: "700", color: "var(--text)" } }, "Install StudyLab"));
+    mid.appendChild(el("div", { css: { fontSize: ".76rem", color: "var(--muted)", marginTop: "1px" } }, "Faster access, works offline"));
+    row.appendChild(mid);
+
+    row.appendChild(el("button", {
+        css: {
+            width: "26px", height: "26px", borderRadius: "50%", border: "none",
+            background: "rgba(255,255,255,0.06)", color: "var(--muted)", fontSize: ".8rem",
+            cursor: "pointer", flexShrink: "0", display: "flex", alignItems: "center", justifyContent: "center"
+        },
+        onclick: function() { dismissInstallBanner(); }
+    }, "✕"));
+
+    banner.appendChild(row);
+
+    var installBtn = el("button", {
+        cls: "sl-cta-glow",
+        css: {
+            width: "100%", marginTop: "12px", padding: "10px", borderRadius: "12px", border: "none",
+            background: "linear-gradient(135deg, var(--accent), var(--accent2))", color: "#fff",
+            fontSize: ".85rem", fontWeight: "700", cursor: "pointer"
+        },
+        onclick: function() { dismissInstallBanner(); installAppNow(); }
+    }, "Install now");
+    banner.appendChild(installBtn);
+
+    var barTrack = el("div", {
+        css: { position: "absolute", left: "0", right: "0", bottom: "0", height: "3px", background: "rgba(255,255,255,0.06)" }
+    });
+    var barFill = el("div", {
+        css: {
+            height: "100%", width: "100%", transformOrigin: "left",
+            background: "linear-gradient(90deg, var(--accent), var(--accent2))",
+            animation: "slShrinkBar 8s linear forwards"
+        }
+    });
+    barTrack.appendChild(barFill);
+    banner.appendChild(barTrack);
+
+    banner.addEventListener('touchstart', function() { barFill.style.animationPlayState = 'paused'; }, { passive: true });
+    banner.addEventListener('touchend', function() { barFill.style.animationPlayState = 'running'; });
+
+    document.body.appendChild(banner);
+    attachSwipeDismiss(banner, 'down', dismissInstallBanner);
+
+    setTimeout(dismissInstallBanner, 8000);
+}
+
+function dismissInstallBanner() {
+    var banner = document.getElementById('sl-install-banner');
+    if (banner) {
+        banner.style.animation = "none";
+        banner.style.transition = "transform .3s ease, opacity .3s ease";
+        banner.style.transform = "translate(-50%,40px)";
+        banner.style.opacity = "0";
+        setTimeout(function() { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 300);
     }
 }
