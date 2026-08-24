@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>StudyLab — Notes Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080F; --bg2:#0D1117; --card:#111827; --card2:#1C2333;
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15);
+  --text:#F1F5F9; --muted:#8B9CB8;
+  --accent:#3B82F6; --accent2:#60A5FA; --accent-glow: rgba(59,130,246,0.25);
+  --good:#34D399; --warn:#FBBF24; --bad:#F87171;
+  --font-display:'Syne',sans-serif; --font-body:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+
+/* ── Lock screen ── */
+#lock{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;}
+#lock .box{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:32px;width:320px;max-width:90vw;}
+#lock h1{font-family:var(--font-display);font-size:1.3rem;margin:0 0 4px;}
+#lock p{color:var(--muted);font-size:.85rem;margin:0 0 20px;}
+#lock input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-size:.95rem;font-family:var(--font-body);}
+#lock input:focus{outline:none;border-color:var(--accent);}
+#lock button{width:100%;margin-top:12px;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:.95rem;cursor:pointer;font-family:var(--font-body);}
+#lock button:hover{background:var(--accent2);}
+#lock .err{color:var(--bad);font-size:.8rem;margin-top:10px;min-height:1em;}
+
+/* ── App shell ── */
+#app{display:none;max-width:1000px;margin:0 auto;padding:24px 16px 80px;}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+header.top h1{font-family:var(--font-display);font-size:1.5rem;margin:0;}
+header.top h1 span{color:var(--accent);}
+header.top .sub{color:var(--muted);font-size:.8rem;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:18px;}
+.card h2{font-family:var(--font-display);font-size:1rem;margin:0 0 14px;}
+label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px;margin-top:12px;}
+label:first-child{margin-top:0;}
+input[type=text],select,textarea{
+  width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--card2);color:var(--text);font-size:.9rem;font-family:var(--font-body);
+}
+input[type=text]:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-size:.8rem;line-height:1.5;}
+.row{display:flex;gap:12px;}
+.row > div{flex:1;}
+
+.btn{padding:10px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;font-family:var(--font-body);}
+.btn:hover{background:var(--border2);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn.primary:hover{background:var(--accent2);border-color:var(--accent2);}
+.btn.ghost{background:transparent;}
+.btn.small{padding:5px 10px;font-size:.75rem;}
+.btn.danger{color:var(--bad);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.tabbar{display:flex;gap:8px;margin-bottom:14px;}
+.tab{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.85rem;font-weight:600;font-family:var(--font-body);}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+.lang-panel{display:none;}
+.lang-panel.active{display:block;}
+
+.block{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.block-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.block-head select{width:auto;flex:0 0 120px;padding:6px 8px;font-size:.8rem;}
+.block-head .spacer{flex:1;}
+.block textarea{min-height:56px;font-family:var(--font-body);font-size:.9rem;}
+.hl-hint{color:var(--muted);font-size:.72rem;margin-top:6px;}
+.hl-hint code{background:var(--card);padding:1px 5px;border-radius:4px;color:var(--accent2);}
+
+.add-block-row{display:flex;gap:8px;margin-top:8px;}
+
+.preview{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:18px;font-size:.92rem;line-height:1.7;}
+.preview h3{font-family:var(--font-display);font-size:1.05rem;margin:0 0 8px;color:var(--text);}
+.preview ul{margin:0 0 10px;padding-left:20px;}
+.preview li{margin-bottom:6px;}
+.preview hl{background:var(--accent-glow);color:var(--accent2);padding:0 3px;border-radius:3px;font-weight:600;}
+.preview .empty{color:var(--muted);font-style:italic;}
+
+.status-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.status-row .msg{font-size:.82rem;color:var(--muted);flex:1;min-width:120px;}
+.status-row .msg.good{color:var(--good);}
+.status-row .msg.bad{color:var(--bad);}
+
+.pill{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.03em;}
+.pill.draft{background:rgba(251,191,36,.15);color:var(--warn);}
+.pill.published{background:rgba(52,211,153,.15);color:var(--good);}
+
+.existing-list{display:flex;flex-direction:column;gap:8px;}
+.existing-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;cursor:pointer;}
+.existing-item:hover{border-color:var(--border2);}
+.existing-item .meta{flex:1;}
+.existing-item .meta .t{font-weight:600;font-size:.88rem;}
+.existing-item .meta .s{color:var(--muted);font-size:.75rem;}
+
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:600px){ .row{flex-direction:column;} }
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <div class="box">
+    <h1>Notes Admin</h1>
+    <p>Enter your key to continue</p>
+    <input type="password" id="lock-input" placeholder="Secret key" autocomplete="off">
+    <button onclick="tryUnlock()">Unlock</button>
+    <div class="err" id="lock-err"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="top">
+    <div>
+      <h1>Study<span>Lab</span> Notes Admin</h1>
+      <div class="sub">Write, format, and publish reading notes</div>
+    </div>
+    <button class="btn ghost small" onclick="lockAgain()">Lock</button>
+  </header>
+
+  <!-- ── Topic meta + JSON import ── -->
+  <div class="card">
+    <h2>Topic</h2>
+    <div class="row">
+      <div>
+        <label>Subject</label>
+        <input type="text" id="f-subject" placeholder="e.g. History">
+      </div>
+      <div>
+        <label>Topic name</label>
+        <input type="text" id="f-topic" placeholder="e.g. Sources of Ancient Indian History">
+      </div>
+    </div>
+
+    <label>Paste AI JSON (optional) — format: <code>{"hi":[...], "en":[...]}</code></label>
+    <textarea id="f-json" placeholder='{"hi":[{"type":"heading","text":"..."}], "en":[...]}'></textarea>
+    <div class="add-block-row">
+      <button class="btn" onclick="loadFromJSON()">Load into editor</button>
+      <span class="hl-hint" style="align-self:center;">Or skip this and just type below.</span>
+    </div>
+  </div>
+
+  <!-- ── Editor ── -->
+  <div class="card">
+    <h2>Content</h2>
+    <div class="tabbar">
+      <button class="tab active" data-lang="hi" onclick="switchLang('hi')">हिन्दी (hi)</button>
+      <button class="tab" data-lang="en" onclick="switchLang('en')">English (en)</button>
+    </div>
+
+    <div class="lang-panel active" id="panel-hi"></div>
+    <div class="lang-panel" id="panel-en"></div>
+
+    <div class="add-block-row">
+      <button class="btn" onclick="addBlock('heading')">+ Heading</button>
+      <button class="btn" onclick="addBlock('bullet')">+ Bullet</button>
+    </div>
+    <div class="hl-hint">Select text inside a block and click <b>Highlight</b> to wrap it in <code>&lt;hl&gt;</code> (used for important dates/names/terms).</div>
+  </div>
+
+  <!-- ── Preview ── -->
+  <div class="card">
+    <h2>Live preview</h2>
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <!-- ── Publish ── -->
+  <div class="card">
+    <h2>Save</h2>
+    <div class="row">
+      <button class="btn" onclick="doSave('Draft')" id="btn-draft">Save as Draft</button>
+      <button class="btn primary" onclick="doSave('Published')" id="btn-publish">Publish</button>
+    </div>
+    <div class="status-row">
+      <span class="msg" id="save-msg"></span>
+    </div>
+  </div>
+
+  <!-- ── Existing topics ── -->
+  <div class="card">
+    <h2>Existing topics <button class="btn small ghost" style="float:right;" onclick="loadExisting()">Refresh</button></h2>
+    <div class="existing-list" id="existing-list">
+      <div class="hl-hint">Click Refresh to load topics already saved in the sheet.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXc3GFUwtc5i8k24IviepphVOkXiD6xyt3aRml_Y0QXaM7xf7HcH1dVp7uCVcb5JvHSg/exec";
+const STORAGE_KEY = "sl_admin_key";
+
+let state = {
+  key: "",
+  lang: "hi",
+  blocks: { hi: [], en: [] }
+};
+
+/* ── Lock ── */
+function tryUnlock(){
+  const val = document.getElementById('lock-input').value.trim();
+  if(!val){ document.getElementById('lock-err').textContent = "Enter a key."; return; }
+  state.key = val;
+  sessionStorage.setItem(STORAGE_KEY, val);
+  document.getElementById('lock').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+function lockAgain(){
+  sessionStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+(function initLock(){
+  const saved = sessionStorage.getItem(STORAGE_KEY);
+  if(saved){
+    state.key = saved;
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+  document.getElementById('lock-input').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') tryUnlock();
+  });
+})();
+
+/* ── Lang tabs ── */
+function switchLang(lang){
+  state.lang = lang;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.lang===lang));
+  document.querySelectorAll('.lang-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+lang));
+}
+
+/* ── Block editor ── */
+function addBlock(type, text){
+  state.blocks[state.lang].push({ type: type, text: text || "" });
+  renderBlocks();
+}
+function removeBlock(lang, idx){
+  state.blocks[lang].splice(idx,1);
+  renderBlocks();
+}
+function moveBlock(lang, idx, dir){
+  const arr = state.blocks[lang];
+  const j = idx + dir;
+  if(j<0 || j>=arr.length) return;
+  [arr[idx], arr[j]] = [arr[j], arr[idx]];
+  renderBlocks();
+}
+function updateBlockText(lang, idx, val){
+  state.blocks[lang][idx].text = val;
+  renderPreview();
+}
+function updateBlockType(lang, idx, val){
+  state.blocks[lang][idx].type = val;
+  renderBlocks();
+}
+function wrapHighlight(lang, idx, ta){
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  if(start===end) return;
+  const val = ta.value;
+  const selected = val.slice(start,end);
+  const newVal = val.slice(0,start) + "<hl>" + selected + "</hl>" + val.slice(end);
+  ta.value = newVal;
+  state.blocks[lang][idx].text = newVal;
+  renderPreview();
+}
+
+function renderBlocks(){
+  ['hi','en'].forEach(lang=>{
+    const panel = document.getElementById('panel-'+lang);
+    panel.innerHTML = "";
+    state.blocks[lang].forEach((b, idx)=>{
+      const div = document.createElement('div');
+      div.className = 'block';
+      div.innerHTML = `
+        <div class="block-head">
+          <select onchange="updateBlockType('${lang}',${idx},this.value)">
+            <option value="heading" ${b.type==='heading'?'selected':''}>Heading</option>
+            <option value="bullet" ${b.type==='bullet'?'selected':''}>Bullet</option>
+          </select>
+          <span class="spacer"></span>
+          <button class="btn small" onclick="moveBlock('${lang}',${idx},-1)">↑</button>
+          <button class="btn small" onclick="moveBlock('${lang}',${idx},1)">↓</button>
+          <button class="btn small" data-hl-btn="${lang}-${idx}">Highlight</button>
+          <button class="btn small danger" onclick="removeBlock('${lang}',${idx})">Delete</button>
+        </div>
+        <textarea data-lang="${lang}" data-idx="${idx}" placeholder="Type ${b.type} text...">${escapeHtml(b.text)}</textarea>
+      `;
+      panel.appendChild(div);
+      const ta = div.querySelector('textarea');
+      ta.addEventListener('input', ()=> updateBlockText(lang, idx, ta.value));
+      div.querySelector(`[data-hl-btn="${lang}-${idx}"]`).addEventListener('click', ()=> wrapHighlight(lang, idx, ta));
+    });
+    if(state.blocks[lang].length === 0){
+      panel.innerHTML = '<div class="hl-hint">No blocks yet — add one above, or paste JSON.</div>';
+    }
+  });
+  renderPreview();
+}
+
+function escapeHtml(s){
+  return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function renderPreview(){
+  const blocks = state.blocks[state.lang];
+  const el = document.getElementById('preview');
+  if(!blocks.length){ el.innerHTML = '<div class="empty">Nothing to preview yet.</div>'; return; }
+  let html = "";
+  let ulOpen = false;
+  blocks.forEach(b=>{
+    const safe = escapeHtmlKeepHl(b.text);
+    if(b.type === 'heading'){
+      if(ulOpen){ html += "</ul>"; ulOpen = false; }
+      html += `<h3>${safe}</h3>`;
+    } else {
+      if(!ulOpen){ html += "<ul>"; ulOpen = true; }
+      html += `<li>${safe}</li>`;
+    }
+  });
+  if(ulOpen) html += "</ul>";
+  el.innerHTML = html;
+}
+// Escape everything except <hl> and </hl> tags so preview renders highlight but nothing else executes.
+function escapeHtmlKeepHl(s){
+  const placeholder1 = "@@HLOPEN@@", placeholder2 = "@@HLCLOSE@@";
+  let t = (s||"").replace(/<hl>/g, placeholder1).replace(/<\/hl>/g, placeholder2);
+  t = t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  t = t.replace(new RegExp(placeholder1,'g'), "<hl>").replace(new RegExp(placeholder2,'g'), "</hl>");
+  return t;
+}
+
+/* ── JSON import ── */
+function loadFromJSON(){
+  const raw = document.getElementById('f-json').value.trim();
+  if(!raw){ setSaveMsg("Paste JSON first.", true); return; }
+  try{
+    const obj = JSON.parse(raw);
+    state.blocks.hi = Array.isArray(obj.hi) ? obj.hi.map(b=>({type:b.type==='heading'?'heading':'bullet', text:b.text||""})) : [];
+    state.blocks.en = Array.isArray(obj.en) ? obj.en.map(b=>({type:b.type==='heading'?'heading':'bullet', text:b.text||""})) : [];
+    renderBlocks();
+    setSaveMsg(`Loaded ${state.blocks.hi.length} hi + ${state.blocks.en.length} en blocks.`, false);
+  }catch(err){
+    setSaveMsg("Invalid JSON: " + err.message, true);
+  }
+}
+
+/* ── Save / Publish ── */
+function doSave(status){
+  const subject = document.getElementById('f-subject').value.trim();
+  const topic = document.getElementById('f-topic').value.trim();
+  if(!subject || !topic){ setSaveMsg("Subject and Topic are required.", true); return; }
+  if(state.blocks.hi.length===0 && state.blocks.en.length===0){ setSaveMsg("Add some content first.", true); return; }
+
+  setSaveMsg("Saving...", false, true);
+  toggleSaveButtons(true);
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      key: state.key,
+      subject: subject,
+      topic: topic,
+      status: status,
+      hi: state.blocks.hi,
+      en: state.blocks.en
+    })
+  })
+  .then(r => r.json())
+  .then(res => {
+    toggleSaveButtons(false);
+    if(res.success){
+      setSaveMsg(`${status} — ${res.rowsWritten} rows written.`, false);
+    } else {
+      setSaveMsg("Error: " + (res.error || "Unknown error"), true);
+    }
+  })
+  .catch(err => {
+    toggleSaveButtons(false);
+    setSaveMsg("Network error: " + err.message, true);
+  });
+}
+function toggleSaveButtons(disabled){
+  document.getElementById('btn-draft').disabled = disabled;
+  document.getElementById('btn-publish').disabled = disabled;
+}
+function setSaveMsg(text, isBad, loading){
+  const el = document.getElementById('save-msg');
+  el.className = 'msg' + (isBad ? ' bad' : (loading ? '' : ' good'));
+  el.innerHTML = (loading ? '<span class="spinner"></span> ' : '') + text;
+}
+
+/* ── Existing topics list ── */
+function loadExisting(){
+  const el = document.getElementById('existing-list');
+  el.innerHTML = '<span class="spinner"></span> Loading...';
+  fetch(APPS_SCRIPT_URL)
+    .then(r => r.json())
+    .then(rows => {
+      if(!Array.isArray(rows)){ el.innerHTML = '<div class="hl-hint">Could not load (check the sheet has a Notes tab with data).</div>'; return; }
+      // group by Subject+Topic
+      const groups = {};
+      rows.forEach(row=>{
+        const key = row.Subject + "|||" + row.Topic;
+        if(!groups[key]) groups[key] = { subject: row.Subject, topic: row.Topic, status: row.Status, count: 0 };
+        groups[key].count++;
+      });
+      const list = Object.values(groups);
+      if(list.length === 0){ el.innerHTML = '<div class="hl-hint">No topics saved yet.</div>'; return; }
+      el.innerHTML = "";
+      list.forEach(g=>{
+        const div = document.createElement('div');
+        div.className = 'existing-item';
+        div.innerHTML = `
+          <div class="meta">
+            <div class="t">${escapeHtml(g.topic)}</div>
+            <div class="s">${escapeHtml(g.subject)} · ${g.count} blocks</div>
+          </div>
+          <span class="pill ${g.status==='Published'?'published':'draft'}">${g.status}</span>
+        `;
+        div.addEventListener('click', ()=> openExisting(g.subject, g.topic));
+        el.appendChild(div);
+      });
+    })
+    .catch(err=>{
+      el.innerHTML = '<div class="hl-hint">Error loading: ' + err.message + '</div>';
+    });
+}
+
+function openExisting(subject, topic){
+  const url = APPS_SCRIPT_URL + "?subject=" + encodeURIComponent(subject) + "&topic=" + encodeURIComponent(topic);
+  document.getElementById('existing-list').insertAdjacentHTML('afterbegin', '<div class="hl-hint">Loading topic...</div>');
+  fetch(url)
+    .then(r=>r.json())
+    .then(rows=>{
+      if(!Array.isArray(rows) || rows.length===0){ setSaveMsg("Could not load that topic.", true); return; }
+      document.getElementById('f-subject').value = subject;
+      document.getElementById('f-topic').value = topic;
+      const hiRows = rows.filter(r=>r.Language==='hi').sort((a,b)=>a.OrderIndex-b.OrderIndex);
+      const enRows = rows.filter(r=>r.Language==='en').sort((a,b)=>a.OrderIndex-b.OrderIndex);
+      state.blocks.hi = hiRows.map(r=>({type:r.Type, text:r.Text}));
+      state.blocks.en = enRows.map(r=>({type:r.Type, text:r.Text}));
+      renderBlocks();
+      window.scrollTo({top:0, behavior:'smooth'});
+      setSaveMsg(`Loaded "${topic}" for editing.`, false);
+    })
+    .catch(err=> setSaveMsg("Error: " + err.message, true));
+}
+
+/* ── init ── */
+renderBlocks();
+</script>
+</body>
+</html>

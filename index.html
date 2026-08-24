@@ -461,10 +461,87 @@ function fetchQuestionsAndStart() {
   });
 }
 
+// ═══════════════════════════════════════════════════════
+// FETCH PUBLISHED READING NOTES FROM SHEET (via Apps Script)
+// Runs BEFORE fetchQuestionsAndStart(), merging published
+// sheet content on top of window.RD (from reading-data.js).
+// Sheet-published topics override any same-named static topic;
+// anything not republished keeps working exactly as before.
+// ═══════════════════════════════════════════════════════
+const NOTES_ADMIN_URL = "https://script.google.com/macros/s/AKfycbzXc3GFUwtc5i8k24IviepphVOkXiD6xyt3aRml_Y0QXaM7xf7HcH1dVp7uCVcb5JvHSg/exec";
+const NOTES_FETCH_TIMEOUT_MS = 10000;
+
+function fetchPublishedNotes(done) {
+  let settled = false;
+  let timeoutId = setTimeout(function() {
+    if (settled) return;
+    settled = true;
+    console.warn("Timed out fetching published notes — using reading-data.js only.");
+    done();
+  }, NOTES_FETCH_TIMEOUT_MS);
+
+  fetch(NOTES_ADMIN_URL + "?status=Published&nocache=" + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(rows) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+
+      if (!Array.isArray(rows)) { done(); return; }
+      if (typeof window.RD === 'undefined') window.RD = {};
+
+      // Group rows by Subject → Topic → Language, ordered by OrderIndex
+      const grouped = {};
+      rows.forEach(function(row) {
+        const subj = row.Subject, topic = row.Topic, lang = row.Language;
+        if (!subj || !topic || !lang) return;
+        if (!grouped[subj]) grouped[subj] = {};
+        if (!grouped[subj][topic]) grouped[subj][topic] = {};
+        if (!grouped[subj][topic][lang]) grouped[subj][topic][lang] = [];
+        grouped[subj][topic][lang].push({
+          type: row.Type,
+          text: row.Text,
+          order: Number(row.OrderIndex) || 0
+        });
+      });
+
+      // Sort each language's blocks by order, strip the helper field,
+      // then merge into window.RD (sheet-published topics override
+      // any same-named static topic from reading-data.js).
+      Object.keys(grouped).forEach(function(subj) {
+        if (!window.RD[subj]) window.RD[subj] = {};
+        Object.keys(grouped[subj]).forEach(function(topic) {
+          const merged = { hi: [], en: [] };
+          ["hi", "en"].forEach(function(lang) {
+            const arr = grouped[subj][topic][lang] || [];
+            arr.sort(function(a, b) { return a.order - b.order; });
+            merged[lang] = arr.map(function(b) { return { type: b.type, text: b.text }; });
+          });
+          window.RD[subj][topic] = merged;
+        });
+      });
+
+      done();
+    })
+    .catch(function(err) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      console.warn("Error fetching published notes — using reading-data.js only:", err);
+      done();
+    });
+}
+
+function fetchAllAndStart() {
+  fetchPublishedNotes(function() {
+    fetchQuestionsAndStart();
+  });
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', fetchQuestionsAndStart);
+  document.addEventListener('DOMContentLoaded', fetchAllAndStart);
 } else {
-  fetchQuestionsAndStart(); 
+  fetchAllAndStart();
 }
 </script>
 
