@@ -91,7 +91,8 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
 .pill.published{background:rgba(52,211,153,.15);color:var(--good);}
 
 .existing-list{display:flex;flex-direction:column;gap:8px;}
-.existing-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;cursor:pointer;}
+.existing-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;}
+.existing-item .meta{cursor:pointer;}
 .existing-item:hover{border-color:var(--border2);}
 .existing-item .meta{flex:1;}
 .existing-item .meta .t{font-weight:600;font-size:.88rem;}
@@ -130,11 +131,13 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
     <div class="row">
       <div>
         <label>Subject</label>
-        <input type="text" id="f-subject" placeholder="e.g. History">
+        <input type="text" id="f-subject" list="dl-subjects" placeholder="e.g. History" autocomplete="off">
+        <datalist id="dl-subjects"></datalist>
       </div>
       <div>
         <label>Topic name</label>
-        <input type="text" id="f-topic" placeholder="e.g. Sources of Ancient Indian History">
+        <input type="text" id="f-topic" list="dl-topics" placeholder="e.g. Sources of Ancient Indian History" autocomplete="off">
+        <datalist id="dl-topics"></datalist>
       </div>
     </div>
 
@@ -194,6 +197,11 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
 <script>
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI-ABsnzwkCi7E0_kjpiFGIeWVJhoM_Lpo5DlbPx1vs-m2zutPN6Msfue2yqYHDvqJXQ/exec";
 const STORAGE_KEY = "sl_admin_key";
+
+// Subject → Topic list, mirrored from window.SD in page-home.js.
+// Used only for autocomplete suggestions — keeps admin entries
+// spelled exactly like the app expects (case-sensitive match).
+const SD_TOPICS = {"History": ["Sources of Ancient Indian History", "Prehistoric Period", "Indus Valley Civilization", "Vedic Civilization", "Rise of Mahajanapadas", "Jainism", "Buddhism", "Shaivism", "Vaishnavism (Bhagwat Dharma)", "Islam", "Christianity", "Zoroastrianism (Parsi Dharma)", "Rise of Magadha", "Alexander's Invasion of India", "Mauryan Empire", "Shunga & Kanva Dynasties", "Indo-Greek Kingdoms in India", "Shakas", "Kushans", "Sangam Age", "Gupta Empire", "Vakataka Dynasty", "Maitraka Dynasty", "Pushyabhuti (Vardhana) Dynasty", "Major Dynasties of South India", "Rise of Frontier Kingdoms", "Origin of Rajput Dynasties", "Arab Invasions of India", "Mahmud of Ghazni", "Muhammad Ghori", "Delhi Sultanate", "Vijayanagara Empire", "Bahmani Kingdom", "Independent Regional Kingdoms", "Sufi Movement", "Bhakti Movement", "Mughal Empire", "Mughal Administration", "Decline of the Marathas", "Later Mughal Emperors", "Advent of European Trading Companies", "British Conquest of Bengal", "Anglo-Mysore Wars", "Anglo-Sikh Wars", "Company Rule & Governor-Generals", "British Administrative Reforms", "Revolt of 1857", "Indian National Movement: Key Facts", "Socio-Religious Reform Movements", "Organizations of the National Movement", "Newspapers & Journals of the Freedom Struggle", "Slogans of the Freedom Movement", "Martyrs of India", "Development of the Indian Press", "British-Era Commissions & Committees", "Titles Conferred & Recipients", "Congress Sessions: Venue & Year", "Historic Battles of India", "Major Dynasties, Founders & Capitals", "Social Reform Acts", "Muslim Socio-Religious Movements & Organizations", "Renaissance", "American War of Independence", "French Revolution", "Unification of Italy", "Unification of Germany", "Russian Revolution", "Industrial Revolution", "Revolution in England", "First World War", "Chinese Revolution", "Turkish Revolution", "Rise of Fascism in Italy", "Rise of Nazism in Germany", "Japanese Imperialism", "Second World War"], "Geography": ["Universe & Solar System", "Earth's Structure & Lithosphere", "Continents of the World", "Climate of India", "Soils of India", "Agriculture of India", "Irrigation in India", "Natural Vegetation of India", "Mineral Resources of India", "Industries of India", "Transport in India", "Major River Valley Projects of India", "Census of India 2011", "Major Cities on Riverbanks", "Hill Stations of India", "Geographical Nicknames of India", "Capitals of Indian States & UTs", "Indian Tribes", "World's Manufacturing Industries", "World's Major Industrial Cities", "World's Major Tribes", "World's Major Vegetation", "Habitats of Tribal Peoples", "World's Geographical Nicknames", "World's Famous Places", "World's Major Geographical Discoveries", "World's Major Mountain Peaks", "World's Major Plateaus", "World's Major Deserts", "Capitals & Currencies of World Countries", "World's Landlocked Countries", "World-Famous Sites"], "Environment & Ecology": ["Environment & Sustainable Development", "Ecology & Ecosystems", "Biodiversity & Conservation", "Environmental Pollution", "Ozone Layer Depletion", "Greenhouse Effect & Climate Change"], "Economy": ["Economics & Economy Basics", "Economic Growth & Development", "National Income", "Economic Planning", "NITI Aayog", "6th Economic Census 2014", "Poverty & Unemployment", "New Economic Policy (LPG Reforms)", "Indian Financial System & Banking", "Agriculture & Economy", "Industry & Economy", "Foreign Trade & Balance of Payments", "Economics Exam-Relevant Facts", "Important Economic Terminology", "Miscellaneous Economic Facts"], "Polity": ["History of the Constitution's Development", "Constituent Assembly of India", "Preamble of the Constitution", "Foreign Sources of the Constitution", "Schedules of the Constitution", "Merger of Princely States", "Union & its Territory", "Reorganization of States", "Indian Citizenship", "Fundamental Rights", "Directive Principles of State Policy (DPSP)", "Fundamental Duties", "Union Executive", "Union Parliament", "Judiciary (Supreme & High Courts)", "State Executive", "State Legislature", "Centre-State Relations", "Inter-State Council", "Election Commission", "UPSC & State Public Service Commissions", "Finance Commission", "GST Council", "National Commission for Scheduled Castes", "National Commission for Scheduled Tribes", "National Backward Classes Commission", "Comptroller & Auditor General (CAG)", "Attorney General of India", "National Human Rights Commission", "State Human Rights Commission", "National Commission for Women", "National Commission for Protection of Child Rights", "Delimitation Commission", "Central Bureau of Investigation (CBI)", "Consolidated Fund of India", "Contingency Fund of India", "Constitutional Amendments Overview", "National Development Council", "Order of Precedence", "Official Language", "Emergency Provisions", "Constitutional Status of Jammu & Kashmir", "National Symbols of India", "Financial Committees of Parliament", "Panchayati Raj", "Important Constitutional Terminology", "Important Articles of the Constitution", "Major Constitutional Amendments"], "Physics": ["Units & Measurements", "Motion", "Work, Energy & Power", "Gravitation", "Pressure", "Buoyancy & Flotation", "Surface Tension", "Viscosity", "Elasticity", "Periodic Motion", "Waves", "Sound Waves", "Heat & Thermodynamics", "Light & Optics", "Electrostatics", "Electric Current", "Magnetism", "Radioactivity", "Nuclear Fission & Fusion", "Scientific Instruments", "Important Discoveries in Physics", "Conversion of Units", "Units of Weights & Measures", "Inventors of Instruments & Devices"], "Chemistry": ["Matter & its Nature", "Atomic Structure", "Behavior of Gases", "Periodic Classification of Elements", "Chemical Reactions & Equations", "Chemical Bonding", "Oxidation & Reduction", "Acids, Bases & Salts", "Solutions", "Carbon & its Compounds", "Fuels", "Metals", "Non-metals", "Alloys", "Man-made Materials & Polymers", "Medicines & Chemicals", "Catalysis"], "Biology": ["Classification of Living Organisms", "Cell Biology", "Biological Evolution", "Genetics", "Botany (Plant Kingdom)", "Zoology (Animal Kingdom)", "Human Body Systems", "Nutrients", "Human Nutrition", "Human Diseases", "Medical Inventions & Discoveries", "Major Medicines & Drugs", "Major Medical Instruments", "Founders of Branches of Zoology", "Fish Species & Classification", "Commercially Important Fishes", "Interesting Biological Facts", "Important Facts about the Human Body", "Major Branches of Science"], "Science & Technology": ["Indian Space Research (ISRO)", "Indian Nuclear Research", "Indian Defence Technology (DRDO)"], "Computer": ["Computer Architecture & History", "Hardware & Software", "Internet & Networking", "Cyber Security Basics", "Shortcuts & Abbreviations"], "Art & Culture": ["Major Indian Dance Forms", "Indian Music & Instruments", "Indian Sculpture", "Major Festivals of India", "Indian Paintings", "UNESCO Cultural Heritage Sites in India", "Cultural Institutions of India"], "Sports": ["Olympic Games", "Commonwealth Games", "Asian Games", "Major Sports & Related Facts", "Sports Cups & Trophies", "Players Per Side in Major Sports", "National Sports of Countries", "Famous Sports Grounds", "Playing Areas of Various Sports", "Sports-Related Awards", "Major Sports Organizations of India"], "Miscellaneous": ["First in India (Women)", "First in India (Men)", "First in India (Others)", "Largest, Longest & Tallest in India", "First in the World", "Largest, Smallest, Longest & Tallest in the World", "National Symbols of Major Countries", "International Borders", "National Monuments of Countries", "Lines on the Map", "News Agencies of Major Countries", "Government Systems of Major Countries", "Political Parties of Various Countries", "Emblems & Symbols of Major Countries", "National Animals & Birds of Major Countries", "Major Airlines of the World", "Major Newspapers & Publication Places", "Major Intelligence Agencies of the World", "Parliaments of Various Countries", "United Nations", "Other Major World Organizations", "World Organizations & their Headquarters", "Contemporary International Decades", "Important National & International Days", "Major Tourist Destinations", "Defence of India", "Military Training Institutions of India", "Internal Security System of India", "Formation Days of Indian States", "Major Research Institutions of India", "Memorials & Samadhi Sites", "Popular Nicknames of Famous Personalities", "Places Associated with Famous Personalities", "Major Awards & Honors", "National Awards", "Bharat Ratna Awardees", "Jnanpith Award-Winning Writers", "Dadasaheb Phalke Award Recipients", "People Associated with Great Works", "Authors & their Books", "Abbreviations"]};
 
 let state = {
   key: "",
@@ -420,8 +428,13 @@ function loadExisting(){
             <div class="s">${escapeHtml(g.subject)} · ${g.count} blocks</div>
           </div>
           <span class="pill ${g.status==='Published'?'published':'draft'}">${g.status}</span>
+          <button class="btn small danger" data-del-btn>Delete</button>
         `;
-        div.addEventListener('click', ()=> openExisting(g.subject, g.topic));
+        div.querySelector('.meta').addEventListener('click', ()=> openExisting(g.subject, g.topic));
+        div.querySelector('[data-del-btn]').addEventListener('click', function(ev){
+          ev.stopPropagation();
+          deleteTopic(g.subject, g.topic, div);
+        });
         el.appendChild(div);
       });
     })
@@ -449,6 +462,46 @@ function openExisting(subject, topic){
     })
     .catch(err=> setSaveMsg("Error: " + err.message, true));
 }
+
+/* ── Delete a topic ── */
+function deleteTopic(subject, topic, rowEl){
+  if(!confirm(`Delete "${topic}" (${subject})? This removes all hi + en rows for it from the sheet. This can't be undone.`)) return;
+
+  rowEl.style.opacity = '.5';
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({ key: state.key, action: "delete", subject: subject, topic: topic })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.success){
+      rowEl.remove();
+      setSaveMsg(`Deleted "${topic}" — ${res.rowsDeleted} rows removed.`, false);
+    } else {
+      rowEl.style.opacity = '1';
+      setSaveMsg("Delete failed: " + (res.error || "Unknown error"), true);
+    }
+  })
+  .catch(err => {
+    rowEl.style.opacity = '1';
+    setSaveMsg("Network error: " + err.message, true);
+  });
+}
+
+/* ── Autocomplete: Subject + Topic suggestions from SD_TOPICS ── */
+function populateSubjectList(){
+  const dl = document.getElementById('dl-subjects');
+  dl.innerHTML = Object.keys(SD_TOPICS).map(s => `<option value="${escapeHtml(s)}">`).join('');
+}
+function populateTopicList(){
+  const subj = document.getElementById('f-subject').value.trim();
+  const dl = document.getElementById('dl-topics');
+  const topics = SD_TOPICS[subj] || [];
+  dl.innerHTML = topics.map(t => `<option value="${escapeHtml(t)}">`).join('');
+}
+document.getElementById('f-subject').addEventListener('input', populateTopicList);
+populateSubjectList();
+populateTopicList();
 
 /* ── init ── */
 renderBlocks();
