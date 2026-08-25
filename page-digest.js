@@ -34,7 +34,7 @@ function pgDigest() {
         var style = document.createElement('style');
         style.id = 'studylab-digest-styles';
         style.innerHTML = `
-            .news-feed-stream { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 10px; }
+            .news-feed-stream { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 10px; transform: translateZ(0); will-change: scroll-position; contain: layout style paint; }
             .rotate-sync { animation: spinSync 1s linear infinite; }
             @keyframes spinSync { 100% { transform: rotate(360deg); } }
             
@@ -315,11 +315,10 @@ function pgDigest() {
         articles.forEach(function (a, idx) {
             var card = el("div", { 
                 css: { 
-                    background: "var(--glass-bg)", border: "1px solid var(--glass-border)", 
+                    background: "var(--card)", border: "1px solid var(--border)", 
                     borderRadius: "20px", overflow: "hidden", marginBottom: "24px", 
                     boxShadow: "0 12px 32px rgba(0,0,0,0.15)",
                     borderTop: "3px solid " + cat.color,
-                    backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
                     animation: "slide-up 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both",
                     animationDelay: (idx * 0.05) + "s"
                 } 
