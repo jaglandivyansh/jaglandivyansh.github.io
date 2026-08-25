@@ -57,7 +57,7 @@ function pgAbout() {
   var bgGlow = el("div", {
     css: {
       position: "absolute", top: "5%", left: "50%", transform: "translateX(-50%)",
-      width: "500px", height: "500px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)",
+      width: "500px", maxWidth: "100vw", height: "500px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)",
       opacity: "0.08", filter: "blur(80px)", pointerEvents: "none", zIndex: "-1"
     }
   });
@@ -98,7 +98,7 @@ function pgAbout() {
   var cmpBox = el("div", { css: { padding: "0 20px", marginBottom: "40px" } });
   var cmp = el("div", { 
       css: { 
-          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px",
+          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: "16px",
           marginTop: "32px" 
       } 
   });
@@ -176,7 +176,7 @@ function pgAbout() {
 
   // ── 4. Mission & Vision ──
   var mvWrap = el("div", { css: { padding: "0 20px", marginBottom: "40px" } });
-  var mvBox = el("div", { css: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" } });
+  var mvBox = el("div", { css: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: "16px" } });
   [
     {icon: "target", title: "Mission", text: "Make quality government exam preparation accessible, simple and completely free for every aspirant."},
     {icon: "telescope", title: "Vision", text: "Build India's most student-friendly learning platform powered by technology and focused learning."}

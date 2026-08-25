@@ -152,7 +152,7 @@ function pgDaily() {
   var bgGlow = el("div", {
     css: {
       position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)",
-      width: "400px", height: "400px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)",
+      width: "400px", maxWidth: "100vw", height: "400px", background: "radial-gradient(circle, var(--accent) 0%, transparent 60%)",
       opacity: "0.08", filter: "blur(60px)", pointerEvents: "none", zIndex: "-1"
     }
   });
