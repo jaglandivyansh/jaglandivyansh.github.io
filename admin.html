@@ -188,6 +188,18 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
   <!-- ── Existing topics ── -->
   <div class="card">
     <h2>Existing topics <button class="btn small ghost" style="float:right;" onclick="loadExisting()">Refresh</button></h2>
+    <div class="row" style="margin-bottom:12px;">
+      <div>
+        <label style="margin-top:0;">Filter by subject</label>
+        <select id="f-filter-subject" onchange="renderExistingList()">
+          <option value="">All subjects</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0;">Search topic</label>
+        <input type="text" id="f-filter-search" placeholder="Type to search..." oninput="renderExistingList()">
+      </div>
+    </div>
     <div class="existing-list" id="existing-list">
       <div class="hl-hint">Click Refresh to load topics already saved in the sheet.</div>
     </div>
@@ -206,7 +218,8 @@ const SD_TOPICS = {"History": ["Sources of Ancient Indian History", "Prehistoric
 let state = {
   key: "",
   lang: "hi",
-  blocks: { hi: [], en: [] }
+  blocks: { hi: [], en: [] },
+  existingGroups: []
 };
 
 /* ── Lock ── */
@@ -416,31 +429,57 @@ function loadExisting(){
         if(!groups[key]) groups[key] = { subject: row.Subject, topic: row.Topic, status: row.Status, count: 0 };
         groups[key].count++;
       });
-      const list = Object.values(groups);
-      if(list.length === 0){ el.innerHTML = '<div class="hl-hint">No topics saved yet.</div>'; return; }
-      el.innerHTML = "";
-      list.forEach(g=>{
-        const div = document.createElement('div');
-        div.className = 'existing-item';
-        div.innerHTML = `
-          <div class="meta">
-            <div class="t">${escapeHtml(g.topic)}</div>
-            <div class="s">${escapeHtml(g.subject)} · ${g.count} blocks</div>
-          </div>
-          <span class="pill ${g.status==='Published'?'published':'draft'}">${g.status}</span>
-          <button class="btn small danger" data-del-btn>Delete</button>
-        `;
-        div.querySelector('.meta').addEventListener('click', ()=> openExisting(g.subject, g.topic));
-        div.querySelector('[data-del-btn]').addEventListener('click', function(ev){
-          ev.stopPropagation();
-          deleteTopic(g.subject, g.topic, div);
-        });
-        el.appendChild(div);
-      });
+      state.existingGroups = Object.values(groups);
+      populateFilterSubjects();
+      renderExistingList();
     })
     .catch(err=>{
       el.innerHTML = '<div class="hl-hint">Error loading: ' + err.message + '</div>';
     });
+}
+
+function populateFilterSubjects(){
+  const sel = document.getElementById('f-filter-subject');
+  const current = sel.value;
+  const subjects = Array.from(new Set((state.existingGroups||[]).map(g=>g.subject))).sort();
+  sel.innerHTML = '<option value="">All subjects</option>' + subjects.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  sel.value = current;
+}
+
+function renderExistingList(){
+  const el = document.getElementById('existing-list');
+  const list = state.existingGroups || [];
+  const filterSubject = document.getElementById('f-filter-subject').value;
+  const search = document.getElementById('f-filter-search').value.trim().toLowerCase();
+
+  const filtered = list.filter(g=>{
+    if(filterSubject && g.subject !== filterSubject) return false;
+    if(search && !g.topic.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  if(list.length === 0){ el.innerHTML = '<div class="hl-hint">No topics saved yet.</div>'; return; }
+  if(filtered.length === 0){ el.innerHTML = '<div class="hl-hint">No topics match this filter.</div>'; return; }
+
+  el.innerHTML = "";
+  filtered.forEach(g=>{
+    const div = document.createElement('div');
+    div.className = 'existing-item';
+    div.innerHTML = `
+      <div class="meta">
+        <div class="t">${escapeHtml(g.topic)}</div>
+        <div class="s">${escapeHtml(g.subject)} · ${g.count} blocks</div>
+      </div>
+      <span class="pill ${g.status==='Published'?'published':'draft'}">${g.status}</span>
+      <button class="btn small danger" data-del-btn>Delete</button>
+    `;
+    div.querySelector('.meta').addEventListener('click', ()=> openExisting(g.subject, g.topic));
+    div.querySelector('[data-del-btn]').addEventListener('click', function(ev){
+      ev.stopPropagation();
+      deleteTopic(g.subject, g.topic, div);
+    });
+    el.appendChild(div);
+  });
 }
 
 function openExisting(subject, topic){
@@ -476,6 +515,10 @@ function deleteTopic(subject, topic, rowEl){
   .then(res => {
     if(res.success){
       rowEl.remove();
+      if(state.existingGroups){
+        state.existingGroups = state.existingGroups.filter(g => !(g.subject===subject && g.topic===topic));
+        populateFilterSubjects();
+      }
       setSaveMsg(`Deleted "${topic}" — ${res.rowsDeleted} rows removed.`, false);
     } else {
       rowEl.style.opacity = '1';
