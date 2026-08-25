@@ -354,18 +354,111 @@ function escapeHtmlKeepHl(s){
   return t;
 }
 
-/* ── JSON import ── */
+/* ── JSON import (with auto-repair) ── */
+
+// Fixes common SYNTAX mistakes so JSON.parse doesn't choke:
+// smart quotes, single quotes, trailing commas, unquoted keys.
+function repairJSONSyntax(raw){
+  let fixed = raw;
+  let changed = [];
+
+  // Smart/curly quotes → straight quotes
+  if(/[\u201C\u201D\u2018\u2019]/.test(fixed)){
+    fixed = fixed.replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+    changed.push("Smart quotes converted to straight quotes");
+  }
+
+  // Single-quoted strings → double-quoted (only when it looks like JSON uses ' instead of ")
+  if(/'/.test(fixed) && !/"/.test(fixed)){
+    fixed = fixed.replace(/'/g, '"');
+    changed.push("Single quotes converted to double quotes");
+  }
+
+  // Trailing commas before } or ]
+  if(/,\s*([}\]])/.test(fixed)){
+    fixed = fixed.replace(/,\s*([}\]])/g, '$1');
+    changed.push("Removed trailing commas");
+  }
+
+  // Unquoted object keys, e.g. {type: "heading"} → {"type": "heading"}
+  const unquotedKeyPattern = /([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)/g;
+  if(unquotedKeyPattern.test(fixed)){
+    fixed = fixed.replace(unquotedKeyPattern, '$1"$2"$3');
+    changed.push("Added quotes around unquoted keys");
+  }
+
+  return { fixed, changed };
+}
+
+// Normalizes STRUCTURE mistakes after successful parse:
+// alternate key names for hi/en, alternate type spellings, etc.
+function normalizeStructure(obj){
+  let changed = [];
+  const result = { hi: [], en: [] };
+
+  // Map alternate language key names to hi/en
+  const hiKeys = ['hi', 'Hindi', 'hindi', 'HI'];
+  const enKeys = ['en', 'English', 'english', 'EN'];
+  let hiSrc = null, enSrc = null;
+  for(const k of hiKeys){ if(Array.isArray(obj[k])){ hiSrc = obj[k]; if(k!=='hi') changed.push(`"${k}" read as Hindi ("hi")`); break; } }
+  for(const k of enKeys){ if(Array.isArray(obj[k])){ enSrc = obj[k]; if(k!=='en') changed.push(`"${k}" read as English ("en")`); break; } }
+
+  function normalizeBlocks(src){
+    if(!Array.isArray(src)) return [];
+    return src.map(b=>{
+      if(typeof b === 'string'){
+        changed.push('Plain string block treated as bullet');
+        return { type: 'bullet', text: b };
+      }
+      let type = (b.type || b.Type || 'bullet').toString().toLowerCase();
+      if(type.startsWith('head')) type = 'heading';
+      else if(type !== 'heading') type = 'bullet';
+      if(b.type && b.type.toLowerCase() !== type) changed.push(`Block type "${b.type}" normalized to "${type}"`);
+      const text = b.text !== undefined ? b.text : (b.Text !== undefined ? b.Text : "");
+      return { type, text: String(text) };
+    });
+  }
+
+  result.hi = normalizeBlocks(hiSrc);
+  result.en = normalizeBlocks(enSrc);
+  return { result, changed };
+}
+
 function loadFromJSON(){
   const raw = document.getElementById('f-json').value.trim();
   if(!raw){ setSaveMsg("Paste JSON first.", true); return; }
+
+  let allChanges = [];
+  let obj;
+
+  // First try parsing as-is
   try{
-    const obj = JSON.parse(raw);
-    state.blocks.hi = Array.isArray(obj.hi) ? obj.hi.map(b=>({type:b.type==='heading'?'heading':'bullet', text:b.text||""})) : [];
-    state.blocks.en = Array.isArray(obj.en) ? obj.en.map(b=>({type:b.type==='heading'?'heading':'bullet', text:b.text||""})) : [];
-    renderBlocks();
-    setSaveMsg(`Loaded ${state.blocks.hi.length} hi + ${state.blocks.en.length} en blocks.`, false);
+    obj = JSON.parse(raw);
   }catch(err){
-    setSaveMsg("Invalid JSON: " + err.message, true);
+    // Try syntax repair, then re-parse
+    const { fixed, changed } = repairJSONSyntax(raw);
+    try{
+      obj = JSON.parse(fixed);
+      allChanges = allChanges.concat(changed);
+    }catch(err2){
+      setSaveMsg("Could not auto-fix JSON: " + err2.message + " — check it manually near where the error points.", true);
+      return;
+    }
+  }
+
+  const { result, changed: structChanges } = normalizeStructure(obj);
+  allChanges = allChanges.concat(structChanges);
+
+  state.blocks.hi = result.hi;
+  state.blocks.en = result.en;
+  renderBlocks();
+
+  const summary = `Loaded ${state.blocks.hi.length} hi + ${state.blocks.en.length} en blocks.`;
+  if(allChanges.length){
+    const uniqueChanges = Array.from(new Set(allChanges));
+    setSaveMsg(summary + " Auto-fixed: " + uniqueChanges.join("; ") + ".", false);
+  } else {
+    setSaveMsg(summary, false);
   }
 }
 
