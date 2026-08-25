@@ -976,6 +976,15 @@ if (isIOS() && !isInStandaloneMode()) {
 document.addEventListener('DOMContentLoaded', updateInstallDrawerItem);
 if (document.readyState !== 'loading') updateInstallDrawerItem();
 
+// HAPTIC TAP FEEDBACK — replaces the blue tap-highlight with a short vibration
+// (works on Android; iOS Safari does not expose the Vibration API, so taps
+// there simply stay silent with no visual flash, which is the desired effect)
+document.addEventListener('click', function(e) {
+    if (!('vibrate' in navigator)) return;
+    var target = e.target.closest('button, a, .nav-item, [onclick]');
+    if (target) navigator.vibrate(10);
+}, true);
+
 // HARDWARE BACK BUTTON & EXIT CONFIRMATION ROUTING
 window.addEventListener('popstate', function(e) {
     if (window.allowNativeExit) return;

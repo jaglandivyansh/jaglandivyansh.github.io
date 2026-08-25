@@ -57,6 +57,7 @@ body {
   color: var(--text);
   font-family: var(--font-body);
   min-height: 100vh;
+  min-height: 100dvh;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -793,6 +794,8 @@ body.hide-top-sections #current-affairs-container { display: none !important; }
 .tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); transition: all 0.2s; }
 .tour-dot.active { background: var(--accent); width: 16px; border-radius: 4px; }
 
+html { -webkit-tap-highlight-color: transparent; }
+* { -webkit-tap-highlight-color: transparent; }
 button, a { -webkit-tap-highlight-color: transparent; outline: none; }
 button:focus, a:focus { outline: none; }
 
@@ -820,6 +823,10 @@ button:focus, a:focus { outline: none; }
   z-index: 9999 !important;
   padding: 0 !important;
   pointer-events: auto !important;
+
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  will-change: transform;
 }
 
 /* Inner flex layout — purely structural, background stays transparent
@@ -1001,6 +1008,10 @@ button:focus, a:focus { outline: none; }
   box-shadow: var(--nav-shadow) !important;
 
   z-index: 9998 !important;
+
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  will-change: transform;
 }
 
 #bottom-navbar button,
