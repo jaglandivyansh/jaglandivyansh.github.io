@@ -125,6 +125,17 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
     <button class="btn ghost small" onclick="lockAgain()">Lock</button>
   </header>
 
+  <!-- ── Autosave restore banner (hidden unless a draft is found) ── -->
+  <div class="card" id="autosave-banner" style="display:none; border-color:var(--warn);">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <span style="flex:1; font-size:.85rem; color:var(--text);">
+        Unsaved work found from your last session (<span id="autosave-when"></span>). Restore it?
+      </span>
+      <button class="btn small primary" onclick="restoreAutosave()">Restore</button>
+      <button class="btn small ghost" onclick="dismissAutosave()">Discard</button>
+    </div>
+  </div>
+
   <!-- ── Topic meta + JSON import ── -->
   <div class="card">
     <h2>Topic</h2>
@@ -204,11 +215,29 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
       <div class="hl-hint">Click Refresh to load topics already saved in the sheet.</div>
     </div>
   </div>
+
+  <!-- ── Recently deleted (soft-deleted, restorable) ── -->
+  <div class="card" id="deleted-section" style="display:none;">
+    <h2>Recently deleted <span class="hl-hint" style="font-weight:400;">— restorable for 7 days</span></h2>
+    <div class="existing-list" id="deleted-list"></div>
+  </div>
+
+  <!-- ── Activity log ── -->
+  <div class="card">
+    <h2>Recent activity <button class="btn small ghost" style="float:right;" onclick="clearActivityLog()">Clear</button></h2>
+    <div class="existing-list" id="activity-log">
+      <div class="hl-hint">Nothing yet — actions you take here will show up.</div>
+    </div>
+  </div>
 </div>
 
 <script>
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI-ABsnzwkCi7E0_kjpiFGIeWVJhoM_Lpo5DlbPx1vs-m2zutPN6Msfue2yqYHDvqJXQ/exec";
 const STORAGE_KEY = "sl_admin_key";
+const AUTOSAVE_KEY = "sl_admin_autosave";
+const SOFT_DELETE_DAYS = 7;
+const ACTIVITY_LOG_KEY = "sl_admin_activity_log";
+const ACTIVITY_LOG_MAX = 30;
 
 // Subject → Topic list, mirrored from window.SD in page-home.js.
 // Used only for autocomplete suggestions — keeps admin entries
@@ -327,6 +356,7 @@ function escapeHtml(s){
 }
 
 function renderPreview(){
+  scheduleAutosave();
   const blocks = state.blocks[state.lang];
   const el = document.getElementById('preview');
   if(!blocks.length){ el.innerHTML = '<div class="empty">Nothing to preview yet.</div>'; return; }
@@ -469,6 +499,27 @@ function doSave(status){
   if(!subject || !topic){ setSaveMsg("Subject and Topic are required.", true); return; }
   if(state.blocks.hi.length===0 && state.blocks.en.length===0){ setSaveMsg("Add some content first.", true); return; }
 
+  if(status === 'Published'){
+    checkExistingBeforePublish(subject, topic, function(existingCount){
+      const msg = existingCount > 0
+        ? `This will overwrite ${existingCount} existing block(s) for "${topic}" (${subject}). The current version will be auto-backed-up and restorable. Continue?`
+        : `Publish "${topic}" (${subject}) as new content?`;
+      if(!confirm(msg)) return;
+      actuallySave(subject, topic, status);
+    });
+  } else {
+    actuallySave(subject, topic, status);
+  }
+}
+
+function checkExistingBeforePublish(subject, topic, callback){
+  fetch(APPS_SCRIPT_URL + "?subject=" + encodeURIComponent(subject) + "&topic=" + encodeURIComponent(topic) + "&includeDeleted=0")
+    .then(r => r.json())
+    .then(rows => callback(Array.isArray(rows) ? rows.length : 0))
+    .catch(() => callback(0)); // if the check fails, don't block publishing — just skip the count
+}
+
+function actuallySave(subject, topic, status){
   setSaveMsg("Saving...", false, true);
   toggleSaveButtons(true);
 
@@ -487,7 +538,9 @@ function doSave(status){
   .then(res => {
     toggleSaveButtons(false);
     if(res.success){
-      setSaveMsg(`${status} — ${res.rowsWritten} rows written.`, false);
+      setSaveMsg(`${status} — ${res.rowsWritten} rows written. Previous version backed up.`, false);
+      clearAutosave();
+      logActivity(status === 'Published' ? 'Published' : 'Saved draft', subject, topic);
     } else {
       setSaveMsg("Error: " + (res.error || "Unknown error"), true);
     }
@@ -511,20 +564,25 @@ function setSaveMsg(text, isBad, loading){
 function loadExisting(){
   const el = document.getElementById('existing-list');
   el.innerHTML = '<span class="spinner"></span> Loading...';
-  fetch(APPS_SCRIPT_URL)
+  fetch(APPS_SCRIPT_URL + "?includeDeleted=1")
     .then(r => r.json())
     .then(rows => {
       if(!Array.isArray(rows)){ el.innerHTML = '<div class="hl-hint">Could not load (check the sheet has a Notes tab with data).</div>'; return; }
-      // group by Subject+Topic
+      // group by Subject+Topic, split live vs deleted
       const groups = {};
       rows.forEach(row=>{
         const key = row.Subject + "|||" + row.Topic;
-        if(!groups[key]) groups[key] = { subject: row.Subject, topic: row.Topic, status: row.Status, count: 0 };
+        if(!groups[key]) groups[key] = { subject: row.Subject, topic: row.Topic, status: row.Status, count: 0, deleted: false };
         groups[key].count++;
+        if(row.Status === "Deleted") groups[key].deleted = true;
+        else groups[key].status = row.Status; // keep the live status label if mixed (shouldn't normally happen)
       });
-      state.existingGroups = Object.values(groups);
+      const all = Object.values(groups);
+      state.existingGroups = all.filter(g => !g.deleted);
+      state.deletedGroups = all.filter(g => g.deleted);
       populateFilterSubjects();
       renderExistingList();
+      renderDeletedList();
     })
     .catch(err=>{
       el.innerHTML = '<div class="hl-hint">Error loading: ' + err.message + '</div>';
@@ -564,6 +622,7 @@ function renderExistingList(){
         <div class="s">${escapeHtml(g.subject)} · ${g.count} blocks</div>
       </div>
       <span class="pill ${g.status==='Published'?'published':'draft'}">${g.status}</span>
+      <button class="btn small ghost" data-hist-btn title="Version history">History</button>
       <button class="btn small danger" data-del-btn>Delete</button>
     `;
     div.querySelector('.meta').addEventListener('click', ()=> openExisting(g.subject, g.topic));
@@ -571,6 +630,34 @@ function renderExistingList(){
       ev.stopPropagation();
       deleteTopic(g.subject, g.topic, div);
     });
+    div.querySelector('[data-hist-btn]').addEventListener('click', function(ev){
+      ev.stopPropagation();
+      showHistory(g.subject, g.topic);
+    });
+    el.appendChild(div);
+  });
+}
+
+function renderDeletedList(){
+  const wrap = document.getElementById('deleted-section');
+  const el = document.getElementById('deleted-list');
+  const list = state.deletedGroups || [];
+  if(list.length === 0){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  el.innerHTML = "";
+  list.forEach(g=>{
+    const div = document.createElement('div');
+    div.className = 'existing-item';
+    div.innerHTML = `
+      <div class="meta" style="cursor:default;">
+        <div class="t">${escapeHtml(g.topic)}</div>
+        <div class="s">${escapeHtml(g.subject)} · ${g.count} blocks · deleted</div>
+      </div>
+      <button class="btn small primary" data-undel-btn>Restore</button>
+      <button class="btn small danger" data-purge-btn title="Permanently delete">Purge</button>
+    `;
+    div.querySelector('[data-undel-btn]').addEventListener('click', ()=> undeleteTopic(g.subject, g.topic, div));
+    div.querySelector('[data-purge-btn]').addEventListener('click', ()=> purgeTopic(g.subject, g.topic, div));
     el.appendChild(div);
   });
 }
@@ -595,9 +682,9 @@ function openExisting(subject, topic){
     .catch(err=> setSaveMsg("Error: " + err.message, true));
 }
 
-/* ── Delete a topic ── */
+/* ── Delete (soft) / Restore / Purge ── */
 function deleteTopic(subject, topic, rowEl){
-  if(!confirm(`Delete "${topic}" (${subject})? This removes all hi + en rows for it from the sheet. This can't be undone.`)) return;
+  if(!confirm(`Delete "${topic}" (${subject})? It'll move to Recently Deleted and can be restored for ${SOFT_DELETE_DAYS} days.`)) return;
 
   rowEl.style.opacity = '.5';
   fetch(APPS_SCRIPT_URL, {
@@ -609,13 +696,64 @@ function deleteTopic(subject, topic, rowEl){
     if(res.success){
       rowEl.remove();
       if(state.existingGroups){
+        const moved = state.existingGroups.find(g => g.subject===subject && g.topic===topic);
         state.existingGroups = state.existingGroups.filter(g => !(g.subject===subject && g.topic===topic));
+        if(moved){ moved.deleted = true; state.deletedGroups = (state.deletedGroups||[]).concat([moved]); renderDeletedList(); }
         populateFilterSubjects();
       }
-      setSaveMsg(`Deleted "${topic}" — ${res.rowsDeleted} rows removed.`, false);
+      setSaveMsg(`Moved "${topic}" to Recently Deleted — ${res.rowsDeleted} rows.`, false);
+      logActivity('Deleted', subject, topic);
     } else {
       rowEl.style.opacity = '1';
       setSaveMsg("Delete failed: " + (res.error || "Unknown error"), true);
+    }
+  })
+  .catch(err => {
+    rowEl.style.opacity = '1';
+    setSaveMsg("Network error: " + err.message, true);
+  });
+}
+
+function undeleteTopic(subject, topic, rowEl){
+  rowEl.style.opacity = '.5';
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({ key: state.key, action: "undelete", subject: subject, topic: topic })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.success){
+      setSaveMsg(`Restored "${topic}" as Draft — publish again to make it live.`, false);
+      logActivity('Restored', subject, topic);
+      loadExisting();
+    } else {
+      rowEl.style.opacity = '1';
+      setSaveMsg("Restore failed: " + (res.error || "Unknown error"), true);
+    }
+  })
+  .catch(err => {
+    rowEl.style.opacity = '1';
+    setSaveMsg("Network error: " + err.message, true);
+  });
+}
+
+function purgeTopic(subject, topic, rowEl){
+  if(!confirm(`Permanently delete "${topic}" (${subject})? This cannot be undone — it will NOT go to history.`)) return;
+  rowEl.style.opacity = '.5';
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({ key: state.key, action: "purge", subject: subject, topic: topic })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.success){
+      rowEl.remove();
+      state.deletedGroups = (state.deletedGroups||[]).filter(g => !(g.subject===subject && g.topic===topic));
+      setSaveMsg(`Permanently removed "${topic}".`, false);
+      logActivity('Purged', subject, topic);
+    } else {
+      rowEl.style.opacity = '1';
+      setSaveMsg("Purge failed: " + (res.error || "Unknown error"), true);
     }
   })
   .catch(err => {
@@ -639,8 +777,140 @@ document.getElementById('f-subject').addEventListener('input', populateTopicList
 populateSubjectList();
 populateTopicList();
 
+/* ── Auto-save draft (localStorage, debounced) ── */
+let autosaveTimer = null;
+function scheduleAutosave(){
+  if(autosaveTimer) clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(doAutosave, 800);
+}
+function doAutosave(){
+  const subject = document.getElementById('f-subject').value;
+  const topic = document.getElementById('f-topic').value;
+  const hasContent = subject.trim() || topic.trim() || state.blocks.hi.length || state.blocks.en.length;
+  if(!hasContent){ localStorage.removeItem(AUTOSAVE_KEY); return; }
+  try{
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
+      subject, topic, blocks: state.blocks, savedAt: Date.now()
+    }));
+  }catch(e){ /* storage full or unavailable — silently skip, not critical */ }
+}
+function checkAutosave(){
+  let raw;
+  try{ raw = localStorage.getItem(AUTOSAVE_KEY); }catch(e){ return; }
+  if(!raw) return;
+  let saved;
+  try{ saved = JSON.parse(raw); }catch(e){ localStorage.removeItem(AUTOSAVE_KEY); return; }
+  if(!saved || (!saved.subject && !saved.topic && !(saved.blocks && (saved.blocks.hi.length || saved.blocks.en.length)))) return;
+
+  const mins = Math.round((Date.now() - (saved.savedAt||0)) / 60000);
+  const when = mins < 1 ? "just now" : mins === 1 ? "1 minute ago" : mins < 60 ? mins + " minutes ago" : Math.round(mins/60) + " hour(s) ago";
+  document.getElementById('autosave-when').textContent = when;
+  document.getElementById('autosave-banner').style.display = 'block';
+  window._pendingAutosave = saved;
+}
+function restoreAutosave(){
+  const saved = window._pendingAutosave;
+  if(!saved) return;
+  document.getElementById('f-subject').value = saved.subject || "";
+  document.getElementById('f-topic').value = saved.topic || "";
+  populateTopicList();
+  state.blocks.hi = (saved.blocks && saved.blocks.hi) || [];
+  state.blocks.en = (saved.blocks && saved.blocks.en) || [];
+  renderBlocks();
+  document.getElementById('autosave-banner').style.display = 'none';
+  setSaveMsg("Restored your unsaved draft.", false);
+}
+function dismissAutosave(){
+  localStorage.removeItem(AUTOSAVE_KEY);
+  document.getElementById('autosave-banner').style.display = 'none';
+}
+function clearAutosave(){
+  localStorage.removeItem(AUTOSAVE_KEY);
+}
+// Hook autosave into every place content changes
+document.getElementById('f-subject').addEventListener('input', scheduleAutosave);
+document.getElementById('f-topic').addEventListener('input', scheduleAutosave);
+checkAutosave();
+
+/* ── Version history ── */
+function showHistory(subject, topic){
+  const url = APPS_SCRIPT_URL + "?history=1&subject=" + encodeURIComponent(subject) + "&topic=" + encodeURIComponent(topic);
+  setSaveMsg("Loading history for \"" + topic + "\"...", false, true);
+  fetch(url)
+    .then(r => r.json())
+    .then(versions => {
+      if(!Array.isArray(versions) || versions.length === 0){
+        setSaveMsg(`No earlier versions found for "${topic}" yet — history builds up as you re-save/publish.`, false);
+        return;
+      }
+      const lines = versions.slice(0, 10).map((v, i) => {
+        const d = new Date(v.backupAt);
+        const when = d.toLocaleString();
+        return `${i+1}. ${when} (${v.reason}, ${v.count} blocks)`;
+      }).join('\n');
+      const choice = prompt(
+        `Versions for "${topic}" (${subject}) — most recent first:\n\n${lines}\n\nEnter a number to restore that version, or Cancel:`
+      );
+      if(!choice) return;
+      const idx = parseInt(choice, 10) - 1;
+      if(isNaN(idx) || idx < 0 || idx >= versions.length){ setSaveMsg("Invalid choice.", true); return; }
+      const v = versions[idx];
+      if(!confirm(`Restore the version from ${new Date(v.backupAt).toLocaleString()}? The current live version will itself be backed up first.`)) return;
+      restoreVersion(subject, topic, v.backupAt);
+    })
+    .catch(err => setSaveMsg("Error loading history: " + err.message, true));
+}
+
+function restoreVersion(subject, topic, backupAt){
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({ key: state.key, action: "restoreVersion", subject: subject, topic: topic, backupAt: backupAt })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.success){
+      setSaveMsg(`Restored "${topic}" — ${res.rowsRestored} rows.`, false);
+      logActivity('Restored version', subject, topic);
+      loadExisting();
+    } else {
+      setSaveMsg("Restore failed: " + (res.error || "Unknown error"), true);
+    }
+  })
+  .catch(err => setSaveMsg("Network error: " + err.message, true));
+}
+
+/* ── Activity log (local — a running list of what you've done this device) ── */
+function logActivity(action, subject, topic){
+  let log = [];
+  try{ log = JSON.parse(localStorage.getItem(ACTIVITY_LOG_KEY) || '[]'); }catch(e){ log = []; }
+  log.unshift({ action, subject, topic, at: Date.now() });
+  if(log.length > ACTIVITY_LOG_MAX) log = log.slice(0, ACTIVITY_LOG_MAX);
+  try{ localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(log)); }catch(e){}
+  renderActivityLog();
+}
+function clearActivityLog(){
+  localStorage.removeItem(ACTIVITY_LOG_KEY);
+  renderActivityLog();
+}
+function renderActivityLog(){
+  const el = document.getElementById('activity-log');
+  let log = [];
+  try{ log = JSON.parse(localStorage.getItem(ACTIVITY_LOG_KEY) || '[]'); }catch(e){ log = []; }
+  if(log.length === 0){ el.innerHTML = '<div class="hl-hint">Nothing yet — actions you take here will show up.</div>'; return; }
+  el.innerHTML = log.map(entry => {
+    const when = new Date(entry.at).toLocaleString();
+    return `<div class="existing-item" style="cursor:default;">
+      <div class="meta">
+        <div class="t">${escapeHtml(entry.action)} — ${escapeHtml(entry.topic)}</div>
+        <div class="s">${escapeHtml(entry.subject)} · ${when}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 /* ── init ── */
 renderBlocks();
+renderActivityLog();
 </script>
 </body>
 </html>
