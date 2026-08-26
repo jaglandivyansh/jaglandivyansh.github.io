@@ -296,7 +296,7 @@ function showLoginModal() {
 // showLoginModal. Verifies email + hashed password against the Apps
 // Script backend and, on success, sends the admin straight to admin.html
 // with their session token so they don't have to sign in twice.
-var ADMIN_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI-ABsnzwkCi7E0_kjpiFGIeWVJhoM_Lpo5DlbPx1vs-m2zutPN6Msfue2yqYHDvqJXQ/exec";
+var ADMIN_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVYzrJl9L0B_FHg0sDtM5gAjDs10xZmiKBlXRUojTE0z9UBQrtOwKAhIQBC_MQ_gdTKg/exec";
 
 function sha256HexApp(str) {
     return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(buf) {
