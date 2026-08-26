@@ -234,9 +234,26 @@ function showLoginModal() {
         }
     });
 
-    var lc = el("div", { css: { display: "flex", justifyContent: "center", marginBottom: "14px" } });
+    var lc = el("div", { css: { display: "flex", justifyContent: "center", marginBottom: "14px", cursor: "default" } });
     lc.appendChild(makeLogo(70));
     card.appendChild(lc);
+
+    // Hidden admin entry: tap the logo 5x within 2s to open the admin
+    // sign-in instead of guest sign-in. Not shown or hinted anywhere in
+    // the UI, so regular users never see an "Admin" option.
+    (function() {
+        var taps = 0, resetTimer = null;
+        lc.addEventListener("click", function() {
+            taps++;
+            clearTimeout(resetTimer);
+            resetTimer = setTimeout(function() { taps = 0; }, 2000);
+            if (taps >= 5) {
+                taps = 0;
+                document.body.removeChild(overlay);
+                showAdminLoginModal();
+            }
+        });
+    })();
 
     card.appendChild(el("div", {
         css: { fontSize: "1.4rem", fontWeight: "800", marginBottom: "6px", textAlign: "center", color: "var(--text)" },
@@ -270,6 +287,100 @@ function showLoginModal() {
     card.appendChild(el("div", {
         css: { fontSize: ".72rem", color: "var(--subtle)", marginTop: "14px", textAlign: "center" }
     }, "🔒 Secure login via Google. We never share your data."));
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+}
+
+// Admin sign-in — reached only via the hidden 5-tap logo trigger in
+// showLoginModal. Verifies email + hashed password against the Apps
+// Script backend and, on success, sends the admin straight to admin.html
+// with their session token so they don't have to sign in twice.
+var ADMIN_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI-ABsnzwkCi7E0_kjpiFGIeWVJhoM_Lpo5DlbPx1vs-m2zutPN6Msfue2yqYHDvqJXQ/exec";
+
+function sha256HexApp(str) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(buf) {
+        return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+    });
+}
+
+function showAdminLoginModal() {
+    var overlay = el("div", {
+        css: {
+            position: "fixed", inset: "0", background: "rgba(0,0,0,0.9)",
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: "10000"
+        },
+        onclick: function(e) { if (e.target === overlay) document.body.removeChild(overlay); }
+    });
+
+    var card = el("div", {
+        css: {
+            background: "var(--card)", border: "1.5px solid var(--border2)",
+            borderRadius: "24px", padding: "36px 32px", maxWidth: "380px",
+            width: "90%"
+        }
+    });
+
+    card.appendChild(el("div", {
+        css: { fontSize: "1.2rem", fontWeight: "800", marginBottom: "18px", textAlign: "center", color: "var(--text)" },
+        txt: "Admin sign in"
+    }));
+
+    var emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.placeholder = "Email";
+    emailInput.autocomplete = "username";
+    emailInput.style.cssText = "width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:.95rem;margin-bottom:10px;box-sizing:border-box;";
+
+    var pwInput = document.createElement("input");
+    pwInput.type = "password";
+    pwInput.placeholder = "Password";
+    pwInput.autocomplete = "current-password";
+    pwInput.style.cssText = emailInput.style.cssText;
+
+    var errBox = el("div", { css: { color: "#F87171", fontSize: ".8rem", minHeight: "1.2em", marginTop: "8px", textAlign: "center" } });
+
+    var submitBtn = document.createElement("button");
+    submitBtn.textContent = "Sign in";
+    submitBtn.style.cssText = "width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;margin-top:6px;";
+
+    function attempt() {
+        var email = emailInput.value.trim();
+        var pw = pwInput.value;
+        if (!email || !pw) { errBox.textContent = "Enter email and password."; return; }
+        errBox.textContent = "";
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Signing in…";
+
+        sha256HexApp(pw).then(function(passwordHash) {
+            return fetch(ADMIN_APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", email: email, passwordHash: passwordHash })
+            });
+        }).then(function(res) { return res.json(); }).then(function(json) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Sign in";
+            if (!json.success) {
+                errBox.textContent = json.error || "Sign in failed.";
+                return;
+            }
+            try { sessionStorage.setItem("sl_admin_token", json.token); } catch (e) {}
+            document.body.removeChild(overlay);
+            window.location.href = "admin.html";
+        }).catch(function() {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Sign in";
+            errBox.textContent = "Couldn't reach the server. Try again.";
+        });
+    }
+
+    submitBtn.addEventListener("click", attempt);
+    pwInput.addEventListener("keydown", function(e) { if (e.key === "Enter") attempt(); });
+
+    card.appendChild(emailInput);
+    card.appendChild(pwInput);
+    card.appendChild(submitBtn);
+    card.appendChild(errBox);
 
     overlay.appendChild(card);
     document.body.appendChild(overlay);

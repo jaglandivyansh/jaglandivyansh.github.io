@@ -49,7 +49,7 @@
 /* ═══════════════════════════════════════════
    BASE
    ═══════════════════════════════════════════ */
-html, body { overscroll-behavior-y: none; }
+html, body { overscroll-behavior-y: none; touch-action: manipulation; }
 html { background-color: var(--bg); }
 
 body {

@@ -109,9 +109,10 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
 <div id="lock">
   <div class="box">
     <h1>Notes Admin</h1>
-    <p>Enter your key to continue</p>
-    <input type="password" id="lock-input" placeholder="Secret key" autocomplete="off">
-    <button onclick="tryUnlock()">Unlock</button>
+    <p>Sign in to continue</p>
+    <input type="email" id="lock-email" placeholder="Email" autocomplete="username">
+    <input type="password" id="lock-input" placeholder="Password" autocomplete="current-password" style="margin-top:10px;">
+    <button id="lock-btn" onclick="tryUnlock()">Sign in</button>
     <div class="err" id="lock-err"></div>
   </div>
 </div>
@@ -233,7 +234,7 @@ textarea{min-height:90px;resize:vertical;font-family:'DM Mono',monospace;font-si
 
 <script>
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI-ABsnzwkCi7E0_kjpiFGIeWVJhoM_Lpo5DlbPx1vs-m2zutPN6Msfue2yqYHDvqJXQ/exec";
-const STORAGE_KEY = "sl_admin_key";
+const STORAGE_KEY = "sl_admin_token";
 const AUTOSAVE_KEY = "sl_admin_autosave";
 const SOFT_DELETE_DAYS = 7;
 const ACTIVITY_LOG_KEY = "sl_admin_activity_log";
@@ -245,34 +246,85 @@ const ACTIVITY_LOG_MAX = 30;
 const SD_TOPICS = {"History": ["Sources of Ancient Indian History", "Prehistoric Period", "Indus Valley Civilization", "Vedic Civilization", "Rise of Mahajanapadas", "Jainism", "Buddhism", "Shaivism", "Vaishnavism (Bhagwat Dharma)", "Islam", "Christianity", "Zoroastrianism (Parsi Dharma)", "Rise of Magadha", "Alexander's Invasion of India", "Mauryan Empire", "Shunga & Kanva Dynasties", "Indo-Greek Kingdoms in India", "Shakas", "Kushans", "Sangam Age", "Gupta Empire", "Vakataka Dynasty", "Maitraka Dynasty", "Pushyabhuti (Vardhana) Dynasty", "Major Dynasties of South India", "Rise of Frontier Kingdoms", "Origin of Rajput Dynasties", "Arab Invasions of India", "Mahmud of Ghazni", "Muhammad Ghori", "Delhi Sultanate", "Vijayanagara Empire", "Bahmani Kingdom", "Independent Regional Kingdoms", "Sufi Movement", "Bhakti Movement", "Mughal Empire", "Mughal Administration", "Decline of the Marathas", "Later Mughal Emperors", "Advent of European Trading Companies", "British Conquest of Bengal", "Anglo-Mysore Wars", "Anglo-Sikh Wars", "Company Rule & Governor-Generals", "British Administrative Reforms", "Revolt of 1857", "Indian National Movement: Key Facts", "Socio-Religious Reform Movements", "Organizations of the National Movement", "Newspapers & Journals of the Freedom Struggle", "Slogans of the Freedom Movement", "Martyrs of India", "Development of the Indian Press", "British-Era Commissions & Committees", "Titles Conferred & Recipients", "Congress Sessions: Venue & Year", "Historic Battles of India", "Major Dynasties, Founders & Capitals", "Social Reform Acts", "Muslim Socio-Religious Movements & Organizations", "Renaissance", "American War of Independence", "French Revolution", "Unification of Italy", "Unification of Germany", "Russian Revolution", "Industrial Revolution", "Revolution in England", "First World War", "Chinese Revolution", "Turkish Revolution", "Rise of Fascism in Italy", "Rise of Nazism in Germany", "Japanese Imperialism", "Second World War"], "Geography": ["Universe & Solar System", "Earth's Structure & Lithosphere", "Continents of the World", "Climate of India", "Soils of India", "Agriculture of India", "Irrigation in India", "Natural Vegetation of India", "Mineral Resources of India", "Industries of India", "Transport in India", "Major River Valley Projects of India", "Census of India 2011", "Major Cities on Riverbanks", "Hill Stations of India", "Geographical Nicknames of India", "Capitals of Indian States & UTs", "Indian Tribes", "World's Manufacturing Industries", "World's Major Industrial Cities", "World's Major Tribes", "World's Major Vegetation", "Habitats of Tribal Peoples", "World's Geographical Nicknames", "World's Famous Places", "World's Major Geographical Discoveries", "World's Major Mountain Peaks", "World's Major Plateaus", "World's Major Deserts", "Capitals & Currencies of World Countries", "World's Landlocked Countries", "World-Famous Sites"], "Environment & Ecology": ["Environment & Sustainable Development", "Ecology & Ecosystems", "Biodiversity & Conservation", "Environmental Pollution", "Ozone Layer Depletion", "Greenhouse Effect & Climate Change"], "Economy": ["Economics & Economy Basics", "Economic Growth & Development", "National Income", "Economic Planning", "NITI Aayog", "6th Economic Census 2014", "Poverty & Unemployment", "New Economic Policy (LPG Reforms)", "Indian Financial System & Banking", "Agriculture & Economy", "Industry & Economy", "Foreign Trade & Balance of Payments", "Economics Exam-Relevant Facts", "Important Economic Terminology", "Miscellaneous Economic Facts"], "Polity": ["History of the Constitution's Development", "Constituent Assembly of India", "Preamble of the Constitution", "Foreign Sources of the Constitution", "Schedules of the Constitution", "Merger of Princely States", "Union & its Territory", "Reorganization of States", "Indian Citizenship", "Fundamental Rights", "Directive Principles of State Policy (DPSP)", "Fundamental Duties", "Union Executive", "Union Parliament", "Judiciary (Supreme & High Courts)", "State Executive", "State Legislature", "Centre-State Relations", "Inter-State Council", "Election Commission", "UPSC & State Public Service Commissions", "Finance Commission", "GST Council", "National Commission for Scheduled Castes", "National Commission for Scheduled Tribes", "National Backward Classes Commission", "Comptroller & Auditor General (CAG)", "Attorney General of India", "National Human Rights Commission", "State Human Rights Commission", "National Commission for Women", "National Commission for Protection of Child Rights", "Delimitation Commission", "Central Bureau of Investigation (CBI)", "Consolidated Fund of India", "Contingency Fund of India", "Constitutional Amendments Overview", "National Development Council", "Order of Precedence", "Official Language", "Emergency Provisions", "Constitutional Status of Jammu & Kashmir", "National Symbols of India", "Financial Committees of Parliament", "Panchayati Raj", "Important Constitutional Terminology", "Important Articles of the Constitution", "Major Constitutional Amendments"], "Physics": ["Units & Measurements", "Motion", "Work, Energy & Power", "Gravitation", "Pressure", "Buoyancy & Flotation", "Surface Tension", "Viscosity", "Elasticity", "Periodic Motion", "Waves", "Sound Waves", "Heat & Thermodynamics", "Light & Optics", "Electrostatics", "Electric Current", "Magnetism", "Radioactivity", "Nuclear Fission & Fusion", "Scientific Instruments", "Important Discoveries in Physics", "Conversion of Units", "Units of Weights & Measures", "Inventors of Instruments & Devices"], "Chemistry": ["Matter & its Nature", "Atomic Structure", "Behavior of Gases", "Periodic Classification of Elements", "Chemical Reactions & Equations", "Chemical Bonding", "Oxidation & Reduction", "Acids, Bases & Salts", "Solutions", "Carbon & its Compounds", "Fuels", "Metals", "Non-metals", "Alloys", "Man-made Materials & Polymers", "Medicines & Chemicals", "Catalysis"], "Biology": ["Classification of Living Organisms", "Cell Biology", "Biological Evolution", "Genetics", "Botany (Plant Kingdom)", "Zoology (Animal Kingdom)", "Human Body Systems", "Nutrients", "Human Nutrition", "Human Diseases", "Medical Inventions & Discoveries", "Major Medicines & Drugs", "Major Medical Instruments", "Founders of Branches of Zoology", "Fish Species & Classification", "Commercially Important Fishes", "Interesting Biological Facts", "Important Facts about the Human Body", "Major Branches of Science"], "Science & Technology": ["Indian Space Research (ISRO)", "Indian Nuclear Research", "Indian Defence Technology (DRDO)"], "Computer": ["Computer Architecture & History", "Hardware & Software", "Internet & Networking", "Cyber Security Basics", "Shortcuts & Abbreviations"], "Art & Culture": ["Major Indian Dance Forms", "Indian Music & Instruments", "Indian Sculpture", "Major Festivals of India", "Indian Paintings", "UNESCO Cultural Heritage Sites in India", "Cultural Institutions of India"], "Sports": ["Olympic Games", "Commonwealth Games", "Asian Games", "Major Sports & Related Facts", "Sports Cups & Trophies", "Players Per Side in Major Sports", "National Sports of Countries", "Famous Sports Grounds", "Playing Areas of Various Sports", "Sports-Related Awards", "Major Sports Organizations of India"], "Miscellaneous": ["First in India (Women)", "First in India (Men)", "First in India (Others)", "Largest, Longest & Tallest in India", "First in the World", "Largest, Smallest, Longest & Tallest in the World", "National Symbols of Major Countries", "International Borders", "National Monuments of Countries", "Lines on the Map", "News Agencies of Major Countries", "Government Systems of Major Countries", "Political Parties of Various Countries", "Emblems & Symbols of Major Countries", "National Animals & Birds of Major Countries", "Major Airlines of the World", "Major Newspapers & Publication Places", "Major Intelligence Agencies of the World", "Parliaments of Various Countries", "United Nations", "Other Major World Organizations", "World Organizations & their Headquarters", "Contemporary International Decades", "Important National & International Days", "Major Tourist Destinations", "Defence of India", "Military Training Institutions of India", "Internal Security System of India", "Formation Days of Indian States", "Major Research Institutions of India", "Memorials & Samadhi Sites", "Popular Nicknames of Famous Personalities", "Places Associated with Famous Personalities", "Major Awards & Honors", "National Awards", "Bharat Ratna Awardees", "Jnanpith Award-Winning Writers", "Dadasaheb Phalke Award Recipients", "People Associated with Great Works", "Authors & their Books", "Abbreviations"]};
 
 let state = {
-  key: "",
+  token: "",
   lang: "hi",
   blocks: { hi: [], en: [] },
   existingGroups: []
 };
 
-/* ── Lock ── */
-function tryUnlock(){
-  const val = document.getElementById('lock-input').value.trim();
-  if(!val){ document.getElementById('lock-err').textContent = "Enter a key."; return; }
-  state.key = val;
-  sessionStorage.setItem(STORAGE_KEY, val);
-  document.getElementById('lock').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+/* ── Password hashing (client-side, so the plaintext password never
+   leaves the browser — only its SHA-256 hash is sent to the server) ── */
+async function sha256Hex(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
+
+/* ── Lock ── */
+async function tryUnlock(){
+  const email = document.getElementById('lock-email').value.trim();
+  const pw = document.getElementById('lock-input').value;
+  const errEl = document.getElementById('lock-err');
+  const btn = document.getElementById('lock-btn');
+  if(!email || !pw){ errEl.textContent = "Enter email and password."; return; }
+
+  errEl.textContent = "";
+  btn.disabled = true;
+  btn.textContent = "Signing in…";
+  try{
+    const passwordHash = await sha256Hex(pw);
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "login", email: email, passwordHash: passwordHash })
+    });
+    const json = await res.json();
+    if(!json.success){
+      errEl.textContent = json.error || "Sign in failed.";
+      btn.disabled = false;
+      btn.textContent = "Sign in";
+      return;
+    }
+    state.token = json.token;
+    sessionStorage.setItem(STORAGE_KEY, json.token);
+    document.getElementById('lock-input').value = "";
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }catch(e){
+    errEl.textContent = "Couldn't reach the server. Try again.";
+    btn.disabled = false;
+    btn.textContent = "Sign in";
+  }
+}
+// Call this after any failed admin action to check if the session expired.
+// If so, boot back to the sign-in screen instead of leaving a confusing error.
+function handleAuthError(errorMsg){
+  if(errorMsg === "Unauthorized"){
+    sessionStorage.removeItem(STORAGE_KEY);
+    alert("Your session expired. Please sign in again.");
+    location.reload();
+    return true;
+  }
+  return false;
+}
+
 function lockAgain(){
+  if(state.token){
+    fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "logout", token: state.token }) }).catch(function(){});
+  }
   sessionStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
 (function initLock(){
   const saved = sessionStorage.getItem(STORAGE_KEY);
   if(saved){
-    state.key = saved;
+    state.token = saved;
     document.getElementById('lock').style.display = 'none';
     document.getElementById('app').style.display = 'block';
   }
   document.getElementById('lock-input').addEventListener('keydown', e=>{
     if(e.key === 'Enter') tryUnlock();
+  });
+  document.getElementById('lock-email').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') document.getElementById('lock-input').focus();
   });
 })();
 
@@ -526,7 +578,7 @@ function actuallySave(subject, topic, status){
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     body: JSON.stringify({
-      key: state.key,
+      token: state.token,
       subject: subject,
       topic: topic,
       status: status,
@@ -541,7 +593,7 @@ function actuallySave(subject, topic, status){
       setSaveMsg(`${status} — ${res.rowsWritten} rows written. Previous version backed up.`, false);
       clearAutosave();
       logActivity(status === 'Published' ? 'Published' : 'Saved draft', subject, topic);
-    } else {
+    } else if(!handleAuthError(res.error)){
       setSaveMsg("Error: " + (res.error || "Unknown error"), true);
     }
   })
@@ -564,7 +616,7 @@ function setSaveMsg(text, isBad, loading){
 function loadExisting(){
   const el = document.getElementById('existing-list');
   el.innerHTML = '<span class="spinner"></span> Loading...';
-  fetch(APPS_SCRIPT_URL + "?includeDeleted=1")
+  fetch(APPS_SCRIPT_URL + "?includeDeleted=1&token=" + encodeURIComponent(state.token))
     .then(r => r.json())
     .then(rows => {
       if(!Array.isArray(rows)){ el.innerHTML = '<div class="hl-hint">Could not load (check the sheet has a Notes tab with data).</div>'; return; }
@@ -689,7 +741,7 @@ function deleteTopic(subject, topic, rowEl){
   rowEl.style.opacity = '.5';
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
-    body: JSON.stringify({ key: state.key, action: "delete", subject: subject, topic: topic })
+    body: JSON.stringify({ token: state.token, action: "delete", subject: subject, topic: topic })
   })
   .then(r => r.json())
   .then(res => {
@@ -718,7 +770,7 @@ function undeleteTopic(subject, topic, rowEl){
   rowEl.style.opacity = '.5';
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
-    body: JSON.stringify({ key: state.key, action: "undelete", subject: subject, topic: topic })
+    body: JSON.stringify({ token: state.token, action: "undelete", subject: subject, topic: topic })
   })
   .then(r => r.json())
   .then(res => {
@@ -742,7 +794,7 @@ function purgeTopic(subject, topic, rowEl){
   rowEl.style.opacity = '.5';
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
-    body: JSON.stringify({ key: state.key, action: "purge", subject: subject, topic: topic })
+    body: JSON.stringify({ token: state.token, action: "purge", subject: subject, topic: topic })
   })
   .then(r => r.json())
   .then(res => {
@@ -834,7 +886,7 @@ checkAutosave();
 
 /* ── Version history ── */
 function showHistory(subject, topic){
-  const url = APPS_SCRIPT_URL + "?history=1&subject=" + encodeURIComponent(subject) + "&topic=" + encodeURIComponent(topic);
+  const url = APPS_SCRIPT_URL + "?history=1&token=" + encodeURIComponent(state.token) + "&subject=" + encodeURIComponent(subject) + "&topic=" + encodeURIComponent(topic);
   setSaveMsg("Loading history for \"" + topic + "\"...", false, true);
   fetch(url)
     .then(r => r.json())
@@ -864,7 +916,7 @@ function showHistory(subject, topic){
 function restoreVersion(subject, topic, backupAt){
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
-    body: JSON.stringify({ key: state.key, action: "restoreVersion", subject: subject, topic: topic, backupAt: backupAt })
+    body: JSON.stringify({ token: state.token, action: "restoreVersion", subject: subject, topic: topic, backupAt: backupAt })
   })
   .then(r => r.json())
   .then(res => {

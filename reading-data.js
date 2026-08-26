@@ -520,21 +520,6 @@ window.RD = {
             ]
         },
 
-        "Vedic Civilization": {
-            hi: [
-                { type: "heading", text: "वैदिक सभ्यता" },
-                { type: "bullet", text: "ऋग्वेद सबसे प्राचीन वेद है, जिसकी रचना लगभग <hl>1500-1000 ईसा पूर्व</hl> मानी जाती है।" },
-                { type: "bullet", text: "वैदिक काल को दो भागों में बाँटा गया है: <hl>ऋग्वैदिक काल</hl> और <hl>उत्तर वैदिक काल</hl>।" },
-                { type: "heading", text: "सामाजिक व्यवस्था" },
-                { type: "bullet", text: "समाज <hl>वर्ण व्यवस्था</hl> पर आधारित था — ब्राह्मण, क्षत्रिय, वैश्य, शूद्र।" }
-            ],
-            en: [
-                { type: "heading", text: "Vedic Civilization" },
-                { type: "bullet", text: "The Rigveda is the oldest Veda, composed around <hl>1500-1000 BCE</hl>." },
-                { type: "bullet", text: "The Vedic Age is divided into two parts: the <hl>Early Vedic Period</hl> and the <hl>Later Vedic Period</hl>." },
-                { type: "heading", text: "Social Structure" },
-                { type: "bullet", text: "Society was based on the <hl>Varna System</hl> — Brahmin, Kshatriya, Vaishya, Shudra." }
-            ]
-        }
+        
     }
 };
