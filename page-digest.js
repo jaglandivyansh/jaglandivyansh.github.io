@@ -34,7 +34,7 @@ function pgDigest() {
         var style = document.createElement('style');
         style.id = 'studylab-digest-styles';
         style.innerHTML = `
-            .news-feed-stream { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: 10px; }
+            .news-feed-stream { padding-top: 10px; }
             .rotate-sync { animation: spinSync 1s linear infinite; }
             @keyframes spinSync { 100% { transform: rotate(360deg); } }
             
