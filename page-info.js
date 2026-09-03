@@ -319,7 +319,7 @@ function pgAbout() {
 
   // ── 10. Footer Note ──
   var fnote = el("div", { css: { textAlign: "center", padding: "10px 20px 40px", color: "var(--subtle)", fontSize: ".8rem", lineHeight: "1.7" } });
-  fnote.appendChild(el("div", { css: { marginBottom: "4px" }, txt: "Made with care by Aman — a fellow aspirant, for all aspirants." }));
+  fnote.appendChild(el("div", { css: { marginBottom: "4px" }, txt: "Made with Love and care by Aman — a fellow aspirant, for all aspirants." }));
   fnote.appendChild(el("div", {}, "StudyLab is free forever. Good luck with your preparation."));
   wrap.appendChild(fnote);
 

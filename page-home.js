@@ -1496,11 +1496,11 @@ function pgHome(){
   ft.appendChild(frl);
   
   var footerCredit = el("a",{
-    href: "https://aratt.ai/user/@jaglan_aman", 
+    href: "https://t.me/studylab_app", 
     target: "_blank",
     css: {fontSize:".75rem", color:"var(--accent)", textDecoration:"none", fontWeight:"600"}
   });
-  footerCredit.textContent = "Created by Aman (@jaglan_aman)";
+  footerCredit.textContent = "Created with ❤️ by Aman (@jaglan_aman)";
   ft.appendChild(footerCredit);
   
   w.appendChild(ft);
