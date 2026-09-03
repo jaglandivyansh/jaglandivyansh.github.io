@@ -182,6 +182,57 @@ function pgStats(){
         background:var(--card);border:1.5px solid var(--border);
         border-radius:16px;margin-bottom:24px;
       }
+      /* ── Strongest/weakest banner ── */
+      .pg-highlight-row{
+        display:flex;gap:10px;margin-bottom:24px;
+      }
+      .pg-highlight-card{
+        flex:1;min-width:0;
+        background:var(--card);border:1.5px solid var(--border);
+        border-radius:16px;padding:14px;
+        box-sizing:border-box;
+      }
+      .pg-highlight-lbl{
+        font-size:.62rem;color:var(--muted);
+        text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+        margin-bottom:6px;
+      }
+      .pg-highlight-subj{
+        display:flex;align-items:center;gap:6px;
+        font-weight:700;font-size:.88rem;
+      }
+      .pg-highlight-val{
+        font-size:.72rem;color:var(--muted);margin-top:2px;
+      }
+      /* ── Trend + momentum ── */
+      .pg-subj-trend{
+        display:inline-flex;align-items:center;gap:3px;
+        font-size:.7rem;font-weight:700;
+      }
+      .pg-trend-up{color:#4ade80;}
+      .pg-trend-down{color:#f87171;}
+      .pg-trend-flat{color:var(--muted);}
+      .pg-subj-meta-row{
+        display:flex;justify-content:space-between;align-items:center;
+        margin-top:8px;font-size:.68rem;color:var(--muted);
+      }
+      .pg-momentum-badge{
+        margin-top:10px;padding:6px 10px;
+        border-radius:8px;font-size:.7rem;font-weight:600;
+      }
+      .pg-momentum-badge.improving{
+        background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:#4ade80;
+      }
+      .pg-momentum-badge.declining{
+        background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171;
+      }
+      .pg-momentum-badge.plateaued{
+        background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#f59e0b;
+      }
+      /* ── Consistency stat ── */
+      .pg-consistency-note{
+        font-size:.7rem;color:var(--muted);margin-top:4px;
+      }
     `;
     document.head.appendChild(style);
 
@@ -191,20 +242,82 @@ function pgStats(){
   // ── Collect stats ──────────────────────────────────────
   var totalAttempted=0,totalCorrect=0,totalSessions=0;
   var subjectStats=[];
+  var allPracticeDates={}; // for consistency: distinct days across ALL subjects
+  var today=new Date();
+
   SUBJ.forEach(function(s){
     var sv=Sv.get("qz_"+s)||{best:null,att:0,h:[]};
-    var hist=sv.h||[];
+    var hist=(sv.h||[]).slice().sort(function(a,b){return a.date>b.date?1:-1;}); // oldest → newest
     var sessions=hist.length;
-    var avgAcc=sessions?Math.round(hist.reduce(function(sum,h){return sum+h.pct;},0)/sessions):0;
+    if(sessions===0) return; // only track subjects the user has actually attempted
+
+    hist.forEach(function(h){ allPracticeDates[h.date]=true; });
+
+    var avgAcc=Math.round(hist.reduce(function(sum,h){return sum+h.pct;},0)/sessions);
     var best=sv.best||0;
     var total=(QD[s]||[]).length;
     var totalQ=hist.reduce(function(sum,h){return sum+h.total;},0);
     var totalC=hist.reduce(function(sum,h){return sum+h.correct;},0);
     totalAttempted+=totalQ;totalCorrect+=totalC;totalSessions+=sessions;
-    subjectStats.push({s:s,sessions:sessions,avg:avgAcc,best:best,total:total,totalQ:totalQ,totalC:totalC});
+
+    // ── Weighted recent-performance score ──
+    // Last 5 sessions weighted more heavily than older ones, so a subject
+    // someone struggled with early but has since improved on reads accurately.
+    var recent=hist.slice(-5);
+    var weights=recent.map(function(_,i){return i+1;}); // 1,2,3,4,5 — most recent gets highest weight
+    var weightedSum=recent.reduce(function(sum,h,i){return sum+h.pct*weights[i];},0);
+    var weightTotal=weights.reduce(function(a,b){return a+b;},0);
+    var weightedScore=Math.round(weightedSum/weightTotal);
+
+    // ── Trend: last 3 sessions vs the 3 before that ──
+    var trend="flat";
+    if(hist.length>=2){
+      var lastN=hist.slice(-3);
+      var prevN=hist.slice(-6,-3);
+      var lastAvg=lastN.reduce(function(s,h){return s+h.pct;},0)/lastN.length;
+      if(prevN.length>0){
+        var prevAvg=prevN.reduce(function(s,h){return s+h.pct;},0)/prevN.length;
+        if(lastAvg-prevAvg>=5) trend="up";
+        else if(prevAvg-lastAvg>=5) trend="down";
+      } else if(hist.length>=2){
+        // not enough history for a prior window — compare first vs last available
+        var firstPct=hist[0].pct, lastPct=hist[hist.length-1].pct;
+        if(lastPct-firstPct>=5) trend="up";
+        else if(firstPct-lastPct>=5) trend="down";
+      }
+    }
+
+    // ── Momentum label (improving / plateaued / declining) ──
+    var momentum = trend==="up" ? "improving" : trend==="down" ? "declining" : "plateaued";
+
+    // ── Recency: days since last practiced this subject ──
+    var lastDateStr=hist[hist.length-1].date;
+    var lastDate=new Date(lastDateStr);
+    var daysSince=Math.floor((today-lastDate)/(1000*60*60*24));
+
+    // ── Best & worst single sessions ──
+    var bestSession=hist.reduce(function(m,h){return h.pct>m.pct?h:m;},hist[0]);
+    var worstSession=hist.reduce(function(m,h){return h.pct<m.pct?h:m;},hist[0]);
+
+    subjectStats.push({
+      s:s, sessions:sessions, avg:avgAcc, best:best, total:total,
+      totalQ:totalQ, totalC:totalC, weightedScore:weightedScore,
+      trend:trend, momentum:momentum, daysSince:daysSince,
+      bestSession:bestSession, worstSession:worstSession
+    });
   });
+
   var overallAcc=totalAttempted?Math.round((totalCorrect/totalAttempted)*100):0;
   var streak=Sv.get("streak")||{count:0};
+  var consistencyDays=Object.keys(allPracticeDates).length;
+
+  // ── Strongest / weakest subject (only meaningful with 2+ attempted subjects) ──
+  var strongestSubj=null, weakestSubj=null;
+  if(subjectStats.length>=2){
+    strongestSubj=subjectStats.reduce(function(m,st){return st.weightedScore>m.weightedScore?st:m;},subjectStats[0]);
+    weakestSubj=subjectStats.reduce(function(m,st){return st.weightedScore<m.weightedScore?st:m;},subjectStats[0]);
+    if(strongestSubj.s===weakestSubj.s){strongestSubj=null;weakestSubj=null;} // only one distinct score, skip banner
+  }
 
   // ── Hero ──────────────────────────────────────────────
   var hero=el("div",{cls:"pg-dash-header"});
@@ -218,7 +331,7 @@ function pgStats(){
   [
     {icon:"📝",val:totalAttempted,lbl:"Questions\nAttempted",color:"var(--accent)",bg:"rgba(99,102,241,.12)"},
     {icon:"🎯",val:overallAcc+"%",lbl:"Overall\nAccuracy",color:"#4ade80",bg:"rgba(74,222,128,.12)"},
-    {icon:"📚",val:totalSessions,lbl:"Quiz\nSessions",color:"#818cf8",bg:"rgba(129,140,248,.12)"},
+    {icon:"📆",val:consistencyDays,lbl:"Active\nDays",color:"#818cf8",bg:"rgba(129,140,248,.12)"},
     {icon:"🔥",val:streak.count,lbl:"Day\nStreak",color:"#f59e0b",bg:"rgba(245,158,11,.12)"}
   ].forEach(function(r){
     var card=el("div",{cls:"pg-stat-card"});
@@ -232,52 +345,102 @@ function pgStats(){
   });
   wrap.appendChild(sg);
 
-  // ── Subject Breakdown ─────────────────────────────────
-  wrap.appendChild(el("div",{cls:"pg-section-label",txt:"Subject Breakdown"}));
-  var list=el("div",{cls:"pg-subj-list"});
-  subjectStats.forEach(function(st){
-    var ac=AC[st.s];
-    var card=el("div",{cls:"pg-subj-card"});
+  // ── Strongest / Weakest banner ─────────────────────────
+  if(strongestSubj && weakestSubj){
+    var hlRow=el("div",{cls:"pg-highlight-row"});
 
-    // Top row
-    var top=el("div",{cls:"pg-subj-top"});
-    var nameDiv=el("div",{cls:"pg-subj-name"});
-    nameDiv.appendChild(el("span",{txt:ICON[st.s]}));
-    nameDiv.appendChild(el("span",{txt:st.s}));
-    top.appendChild(nameDiv);
-    top.appendChild(el("span",{cls:"pg-subj-best",css:{background:ac+"18",color:ac},txt:st.best?st.best+"%":"—"}));
-    card.appendChild(top);
+    var strongCard=el("div",{cls:"pg-highlight-card"});
+    strongCard.appendChild(el("div",{cls:"pg-highlight-lbl",txt:"💪 Strongest"}));
+    var strongSubjRow=el("div",{cls:"pg-highlight-subj"});
+    strongSubjRow.appendChild(el("span",{txt:ICON[strongestSubj.s]}));
+    strongSubjRow.appendChild(el("span",{txt:strongestSubj.s}));
+    strongCard.appendChild(strongSubjRow);
+    strongCard.appendChild(el("div",{cls:"pg-highlight-val",txt:strongestSubj.weightedScore+"% recent avg"}));
+    hlRow.appendChild(strongCard);
 
-    // Accuracy bar
-    var bw=el("div",{cls:"pg-bar-wrap"});
-    var bm=el("div",{cls:"pg-bar-meta"});
-    bm.appendChild(el("span",{txt:"Accuracy"}));
-    bm.appendChild(el("span",{txt:st.avg+"%"}));
-    bw.appendChild(bm);
-    var track=el("div",{cls:"pg-bar-track"});
-    var fill=el("div",{cls:"pg-bar-fill",css:{width:st.avg+"%",background:ac}});
-    track.appendChild(fill);bw.appendChild(track);
-    card.appendChild(bw);
+    var weakCard=el("div",{cls:"pg-highlight-card"});
+    weakCard.appendChild(el("div",{cls:"pg-highlight-lbl",txt:"🎯 Needs Focus"}));
+    var weakSubjRow=el("div",{cls:"pg-highlight-subj"});
+    weakSubjRow.appendChild(el("span",{txt:ICON[weakestSubj.s]}));
+    weakSubjRow.appendChild(el("span",{txt:weakestSubj.s}));
+    weakCard.appendChild(weakSubjRow);
+    weakCard.appendChild(el("div",{cls:"pg-highlight-val",txt:weakestSubj.weightedScore+"% recent avg"}));
+    hlRow.appendChild(weakCard);
 
-    // Mini stats
-    var ms=el("div",{cls:"pg-mini-stats"});
-    [[st.sessions,"Sessions"],[st.totalQ,"Questions"],[st.totalC,"Correct"]].forEach(function(r){
-      var s=el("div",{cls:"pg-mini-stat"});
-      s.appendChild(el("div",{cls:"pg-mini-val",txt:String(r[0])}));
-      s.appendChild(el("div",{cls:"pg-mini-lbl",txt:r[1]}));
-      ms.appendChild(s);
+    wrap.appendChild(hlRow);
+  }
+
+  // ── Subject Breakdown (only subjects the user has attempted) ──
+  if(subjectStats.length>0){
+    wrap.appendChild(el("div",{cls:"pg-section-label",txt:"Subject Breakdown"}));
+    var list=el("div",{cls:"pg-subj-list"});
+    subjectStats.forEach(function(st){
+      var ac=AC[st.s];
+      var card=el("div",{cls:"pg-subj-card"});
+
+      // Top row
+      var top=el("div",{cls:"pg-subj-top"});
+      var nameDiv=el("div",{cls:"pg-subj-name"});
+      nameDiv.appendChild(el("span",{txt:ICON[st.s]}));
+      nameDiv.appendChild(el("span",{txt:st.s}));
+      top.appendChild(nameDiv);
+      top.appendChild(el("span",{cls:"pg-subj-best",css:{background:ac+"18",color:ac},txt:st.best?st.best+"%":"—"}));
+      card.appendChild(top);
+
+      // Accuracy bar — now driven by the weighted recent score, not flat lifetime avg
+      var bw=el("div",{cls:"pg-bar-wrap"});
+      var bm=el("div",{cls:"pg-bar-meta"});
+      var accLabel=el("span",{txt:"Recent Accuracy"});
+      bm.appendChild(accLabel);
+      var accValWrap=el("span",{});
+      accValWrap.appendChild(document.createTextNode(st.weightedScore+"% "));
+      var trendSpan=el("span",{
+        cls:"pg-subj-trend "+(st.trend==="up"?"pg-trend-up":st.trend==="down"?"pg-trend-down":"pg-trend-flat"),
+        txt:st.trend==="up"?"↑":st.trend==="down"?"↓":"→"
+      });
+      accValWrap.appendChild(trendSpan);
+      bm.appendChild(accValWrap);
+      bw.appendChild(bm);
+      var track=el("div",{cls:"pg-bar-track"});
+      var fill=el("div",{cls:"pg-bar-fill",css:{width:st.weightedScore+"%",background:ac}});
+      track.appendChild(fill);bw.appendChild(track);
+      card.appendChild(bw);
+
+      // Mini stats
+      var ms=el("div",{cls:"pg-mini-stats"});
+      [[st.sessions,"Sessions"],[st.totalQ,"Questions"],[st.totalC,"Correct"]].forEach(function(r){
+        var s=el("div",{cls:"pg-mini-stat"});
+        s.appendChild(el("div",{cls:"pg-mini-val",txt:String(r[0])}));
+        s.appendChild(el("div",{cls:"pg-mini-lbl",txt:r[1]}));
+        ms.appendChild(s);
+      });
+      card.appendChild(ms);
+
+      // Best/worst session + recency
+      var metaRow=el("div",{cls:"pg-subj-meta-row"});
+      metaRow.appendChild(el("span",{txt:"Best "+st.bestSession.pct+"% · Worst "+st.worstSession.pct+"%"}));
+      var recencyTxt = st.daysSince===0 ? "Practiced today" :
+                        st.daysSince===1 ? "Practiced yesterday" :
+                        "Last practiced "+st.daysSince+"d ago";
+      metaRow.appendChild(el("span",{txt:recencyTxt}));
+      card.appendChild(metaRow);
+
+      // Momentum badge (only once there's enough history to say something meaningful)
+      if(st.sessions>=2){
+        var momentumTxt = st.momentum==="improving" ? "📈 Improving — keep it up!" :
+                           st.momentum==="declining" ? "📉 Slipping — revisit this soon" :
+                           "➖ Steady — try to push higher";
+        card.appendChild(el("div",{cls:"pg-momentum-badge "+st.momentum,txt:momentumTxt}));
+      } else if(st.avg<50){
+        card.appendChild(el("div",{cls:"pg-badge weak",txt:"⚠️ Needs more practice"}));
+      } else if(st.avg>=80){
+        card.appendChild(el("div",{cls:"pg-badge strong",txt:"⭐ Strong start!"}));
+      }
+
+      list.appendChild(card);
     });
-    card.appendChild(ms);
-
-    // Badge
-    if(st.sessions>0&&st.avg<50){
-      card.appendChild(el("div",{cls:"pg-badge weak",txt:"⚠️ Needs more practice"}));
-    } else if(st.sessions>0&&st.avg>=80){
-      card.appendChild(el("div",{cls:"pg-badge strong",txt:"⭐ Strong subject!"}));
-    }
-    list.appendChild(card);
-  });
-  wrap.appendChild(list);
+    wrap.appendChild(list);
+  }
 
   // ── Recent Sessions ───────────────────────────────────
   var recentAll=[];

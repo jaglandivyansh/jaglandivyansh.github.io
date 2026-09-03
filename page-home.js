@@ -1384,8 +1384,6 @@ function pgHome(){
 
   w.appendChild(makeAIDoubtSolver());
 
-  
-  
   var subjSec = el("div", { id: "ss", css: { marginBottom: "60px", position: "relative", zIndex: "2" } });
   
   var subjTitle = el("div", { css: { textAlign: "center", marginBottom: "40px" } });

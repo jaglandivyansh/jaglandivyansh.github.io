@@ -125,31 +125,12 @@
     <span class="nav-label">Home</span>
   </button>
 
-  <button class="nav-item" onclick="go('govtupdates')" data-page="govtupdates">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-    </svg>
-    <span class="nav-label">Updates</span>
-  </button>
-
   <button class="nav-item" onclick="go('shorts')" data-page="shorts">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
       <circle cx="12" cy="12" r="10"></circle>
       <polygon points="10 8 16 12 10 16 10 8"></polygon>
     </svg>
     <span class="nav-label">Shorts</span>
-  </button>
-
-  <button class="nav-item" onclick="go('digest')" data-page="digest">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
-      <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
-      <path d="M8 8h.01"></path>
-      <path d="M12 8h4"></path>
-      <path d="M8 12h8"></path>
-      <path d="M8 16h8"></path>
-    </svg>
-    <span class="nav-label">Digest</span>
   </button>
 
   <button class="nav-item" onclick="go('daily')" data-page="daily">
@@ -190,23 +171,40 @@
   </div>
 
   <div class="drawer-menu-list">
+  <div class="drawer-section-title">News & Updates</div>
+
+  <button onclick="go('govtupdates'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 1;">
+    <div class="drawer-icon-box" style="--box-color: #4F8EF7; --box-bg: rgba(79, 142, 247, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    </div>
+    <span>Govt Updates</span>
+  </button>
+
+  <button onclick="go('digest'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 2;">
+    <div class="drawer-icon-box" style="--box-color: #f59e0b; --box-bg: rgba(245, 158, 11, 0.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect><path d="M8 8h.01"></path><path d="M12 8h4"></path><path d="M8 12h8"></path><path d="M8 16h8"></path></svg>
+    </div>
+    <span>Current Affairs Digest</span>
+  </button>
+
+  <div id="nb-mobile-drawer-divider"></div>
   <div class="drawer-section-title">Learning Modes</div>
 
-  <button onclick="go('skilltree'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 1;">
+  <button onclick="go('skilltree'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 3;">
     <div class="drawer-icon-box" style="--box-color: #a78bfa; --box-bg: rgba(124, 58, 237, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M12 8l4 -4"/><path d="M12 14l-4 -4"/><path d="M12 20l4 -4"/></svg>
     </div>
     <span>RPG Skill Tree</span>
   </button>
 
-  <button onclick="go('stats'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 2;">
+  <button onclick="go('stats'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 4;">
     <div class="drawer-icon-box" style="--box-color: #3b82f6; --box-bg: rgba(59, 130, 246, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
     </div>
     <span>My Progress</span>
   </button>
 
-  <button id="drawer-install-item" onclick="showInstallModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 2; display:none;">
+  <button id="drawer-install-item" onclick="showInstallModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 5; display:none;">
     <div class="drawer-icon-box" style="--box-color: #4F8EF7; --box-bg: rgba(79, 142, 247, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
     </div>
@@ -217,7 +215,7 @@
   <div class="drawer-section-title">Support & Community</div>
 
   <!-- Email Support -->
-  <button onclick="window.location.href='mailto:jaglanaman71@gmail.com?subject=StudyLab Support Request'; window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 3;">
+  <button onclick="window.location.href='mailto:jaglanaman71@gmail.com?subject=StudyLab Support Request'; window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 6;">
     <div class="drawer-icon-box" style="--box-color: #ec4899; --box-bg: rgba(236, 72, 153, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
     </div>
@@ -225,7 +223,7 @@
   </button>
 
   <!-- Telegram Community -->
-  <button onclick="window.open('https://t.me/studylab_app', '_blank'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 4;">
+  <button onclick="window.open('https://t.me/studylab_app', '_blank'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 7;">
     <div class="drawer-icon-box" style="--box-color: #0ea5e9; --box-bg: rgba(14, 165, 233, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
     </div>
@@ -235,14 +233,14 @@
   <div id="nb-mobile-drawer-divider"></div>
   <div class="drawer-section-title">App Details</div>
 
-  <button onclick="openFeedbackModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 6;">
+  <button onclick="openFeedbackModal(); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 8;">
     <div class="drawer-icon-box" style="--box-color: #10b981; --box-bg: rgba(16, 185, 129, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
     </div>
     <span>Rate StudyLab</span>
   </button>
 
-  <button onclick="go('about'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 7;">
+  <button onclick="go('about'); window.closeDrawer();" class="drawer-menu-item" style="--anim-order: 9;">
     <div class="drawer-icon-box" style="--box-color: #64748b; --box-bg: rgba(100, 116, 139, 0.15);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
     </div>
@@ -364,7 +362,41 @@ function initializeApp() {
   }
 }
 
-window.QD = {}; 
+window.QD = {};
+
+// ── QD CACHE: load last-known-good question bank instantly ──
+// Prevents a blank/empty quiz on cold start when the network is
+// slow or a sheet fetch fails. The live fetch below still runs
+// in the background and overwrites this with fresh data subject
+// by subject, so users always end up on the latest questions —
+// they just never have to stare at "0 questions" while waiting.
+const QD_CACHE_KEY = "studylab_qd_cache_v1";
+
+function loadCachedQD() {
+  try {
+    const raw = localStorage.getItem(QD_CACHE_KEY);
+    if (!raw) return;
+    const cached = JSON.parse(raw);
+    if (cached && typeof cached === "object") {
+      window.QD = cached;
+      console.log("Loaded cached question bank (" +
+        Object.values(cached).reduce((s, a) => s + (a ? a.length : 0), 0) +
+        " questions) while live data loads.");
+    }
+  } catch (e) {
+    console.warn("Could not read cached question bank:", e);
+  }
+}
+
+function saveCachedQD() {
+  try {
+    localStorage.setItem(QD_CACHE_KEY, JSON.stringify(window.QD));
+  } catch (e) {
+    console.warn("Could not cache question bank (storage full or blocked):", e);
+  }
+}
+
+loadCachedQD();
 
 function fetchQuestionsAndStart() {
   const SHEET_SOURCES = [
@@ -401,6 +433,7 @@ function fetchQuestionsAndStart() {
         }
       }
       window.totalQuestions = Object.values(window.QD).reduce((sum, arr) => sum + arr.length, 0);
+      saveCachedQD();
       initializeApp();
     }
   }
@@ -421,6 +454,8 @@ function fetchQuestionsAndStart() {
       settled = true;
       console.error("Timed out fetching sheet for subject:", subject);
       failedSubjects.push(subject);
+      // Keep whatever was already loaded from cache for this subject
+      // rather than wiping it to an empty array.
       if (!window.QD[subject]) window.QD[subject] = [];
       completedRequests++;
       checkAllDone();
@@ -433,7 +468,9 @@ function fetchQuestionsAndStart() {
         settled = true;
         clearTimeout(timeoutId);
 
-        if (!window.QD[subject]) window.QD[subject] = [];
+        // Fresh data always replaces cached data for this subject
+        // (cache is only a fallback for when the live fetch fails).
+        window.QD[subject] = [];
         results.data.forEach(function(row) {
           if (!row["Question"]) return;
           window.QD[subject].push({
@@ -453,6 +490,8 @@ function fetchQuestionsAndStart() {
 
         console.error("Error fetching/parsing sheet for subject:", subject, err);
         failedSubjects.push(subject);
+        // Keep whatever was already loaded from cache for this subject
+        // rather than wiping it to an empty array.
         if (!window.QD[subject]) window.QD[subject] = [];
         completedRequests++;
         checkAllDone();
@@ -555,7 +594,7 @@ if (document.readyState === 'loading') {
 
 <script>
 (function () {
-  var NAV_PAGES = ['home', 'govtupdates', 'shorts', 'digest', 'daily'];
+  var NAV_PAGES = ['home', 'shorts', 'daily'];
   var EDGE_ZONE = 28;  
   var SWIPE_MIN = 48;  
   var TIME_MAX  = 400; 
