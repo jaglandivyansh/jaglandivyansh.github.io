@@ -1500,7 +1500,7 @@ function pgHome(){
     target: "_blank",
     css: {fontSize:".75rem", color:"var(--accent)", textDecoration:"none", fontWeight:"600"}
   });
-  footerCredit.textContent = "Created with ❤️ by Aman (@jaglan_aman)";
+  footerCredit.textContent = "Created with ❤️ by Aman (@studylab)";
   ft.appendChild(footerCredit);
   
   w.appendChild(ft);
