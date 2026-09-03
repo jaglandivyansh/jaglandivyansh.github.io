@@ -58,6 +58,14 @@ function pgDigest() {
                 -moz-text-size-adjust: 100%;
                 text-size-adjust: 100%;
             }
+
+            /* Clip the 400px decorative glow circles (bgGlow) so they can't
+               poke past the viewport edge on narrow phones and force a
+               horizontal scrollbar. */
+            .fd {
+                overflow-x: hidden;
+                max-width: 100vw;
+            }
         `;
         document.head.appendChild(style);
     }
