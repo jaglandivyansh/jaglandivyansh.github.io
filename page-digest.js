@@ -49,6 +49,15 @@ function pgDigest() {
             .fd, .fd * {
                 touch-action: manipulation;
             }
+
+            /* Disable mobile "font boosting" / text auto-sizing, which
+               inflates font sizes in narrow text blocks on tap/scroll and
+               looks like the page is zooming in on its own. */
+            .fd {
+                -webkit-text-size-adjust: 100%;
+                -moz-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
         `;
         document.head.appendChild(style);
     }
