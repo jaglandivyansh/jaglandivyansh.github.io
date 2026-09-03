@@ -43,6 +43,12 @@ function pgDigest() {
                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
                 gap: 16px;
             }
+
+            /* Prevent mobile browsers from auto-zooming in on tap/double-tap
+               within the digest module (cards, buttons, images). */
+            .fd, .fd * {
+                touch-action: manipulation;
+            }
         `;
         document.head.appendChild(style);
     }
